@@ -4,16 +4,14 @@ on:
   push:
     branches:
       - main
-      - Preso
   pull_request:
     branches:
       - main
-      - Preso
 
 jobs:
   lint:
     name: Lint Code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -38,9 +36,10 @@ jobs:
       - name: Run JavaScript Linter and fix issues
         run: |
           npx prettier --write .
+
   sonarcloud:
     name: SonarCloud Analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -54,7 +53,7 @@ jobs:
             -Dsonar.login="${{ secrets.SONAR_TOKEN }}"
   snyk:
     name: Snyk Security Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3  # Use the latest stable version of the checkout action
@@ -76,30 +75,29 @@ jobs:
 
   build:
     name: Build Project
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [lint, sonarcloud, snyk]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
       - name: Build
         run: |
-          # Replace with actual build command
-          echo "Building project..."
+          docker build -t ghcr.io/tarator47/sudoku-app:latest ./app
 
   trivy:
     name: Trivy Security Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
       - name: Trivy Scan
         run: |
-          docker run --rm -v $(pwd):/project aquasec/trivy fs /project
+          docker run --rm -v ./app:/app aquasec/trivy fs /app
 
   tests:
     name: Run Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - name: Checkout Code
@@ -111,12 +109,12 @@ jobs:
 
   deploy:
     name: Deploy Application
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [tests, trivy]
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      - name: Deploy
+      - name: Log in to GitHub Container Registry
         run: |
-          # Replace with actual deploy command
-          echo "Deploying application..."
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Push Docker Image
+        run: |
+          docker push ghcr.io/tarator47/sudoku-app:latest
