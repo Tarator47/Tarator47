@@ -31,7 +31,7 @@ jobs:
           node-version: '14'
       - name: Install JavaScript dependencies
         run: |
-          npm install -g eslint
+          npm install -g eslint@8
       - name: Run Python Linter
         run: |
           flake8 .
