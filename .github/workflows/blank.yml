@@ -58,11 +58,11 @@ jobs:
         - uses: actions/checkout@master
         - uses: snyk/actions/setup@master
         - name: Test dependencies with Snyk
-          run: snyk test
+          run: snyk test ./app
           env:
             SNYK_TOKEN: ${{secrets.SNYK_TOKEN}}
         - name: Monitor dependencies for security issues with Snyk
-          run: snyk monitor
+          run: snyk monitor ./app
           env:
             SNYK_TOKEN: ${{secrets.SNYK_TOKEN}}
 
