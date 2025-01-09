@@ -59,8 +59,8 @@ jobs:
       - name: SonarCloud Scan
           run: |
             sonar-scanner \
-              -Dsonar.organization="Tarator47" \
-              -Dsonar.projectKey="tarator47" \
+              -Dsonar.organization="${{ secrets.SONAR_ORG }}" \
+              -Dsonar.projectKey="${{ secrets.SONAR_ORG_KEY }}" \
               -Dsonar.sources="." \
               -Dsonar.host.url="https://sonarcloud.io" \
               -Dsonar.login="${{ secrets.SONAR_TOKEN }}" \
