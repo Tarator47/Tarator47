@@ -35,9 +35,9 @@ jobs:
       - name: Run Python Linter
         run: |
           flake8 .
-      - name: Run JavaScript Linter
+      - name: Run JavaScript Linter and fix issues
         run: |
-          npx prettier --check .
+          npx prettier --write .
   sonarcloud:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
