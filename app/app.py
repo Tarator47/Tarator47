@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template
 from sudopy import Sudoku, Generate
-import ctypes
 
 app = Flask(__name__)
 
@@ -10,6 +9,7 @@ play_list = []
 # boolean that is True if a Sudoku has been generated using
 #   the Generate object, False otherwise
 has_gen = False
+
 
 @app.route('/')
 def menu():
@@ -59,7 +59,9 @@ def play():
                 # is_solved will be "None" since the sudoku is not completed
                 # input_array is initialized to play_list, which contains the starting numbers of a sudoku
                 # play_array refers to the compiled 2D list after a user has finished playing a sudoku; in this case, play_array will be None
-                return render_template('play.html', is_solved="None", input_array=play_list, play_array=None)
+                return render_template(
+                    'play.html', is_solved="None", input_array=play_list, play_array=None
+                )
 
             # if the POST request is from '/play" (when the user checks their sudoku)
             elif '/play' in request.referrer:
@@ -68,7 +70,10 @@ def play():
                 # check_array is initialized to a 2D list of booleans that signify if each cell is valid
                 # input_array is initialized to play_list, which contains the starting numbers of a sudoku
                 # play_array refers to the compiled 2D list after a user has finished playing the sudoku
-                return render_template('play.html', is_solved=s.check_grid(), check_array=s.check_grid_items(), input_array=play_list, play_array=s.return_array())
+                return render_template(
+                    'play.html', is_solved=s.check_grid(), check_array=s.check_grid_items(),
+                    input_array=play_list, play_array=s.return_array()
+                )
 
         # if the POST request is from the menu page
         elif '/' in request.referrer:
@@ -88,7 +93,9 @@ def play():
                 g = Generate(content)
                 play_list = g.generate_sudoku()
                 has_gen = True
-            return render_template('play.html', is_solved="None", input_array=play_list, play_array=None)
+            return render_template(
+                'play.html', is_solved="None", input_array=play_list, play_array=None
+            )
     else:
         return render_template('play.html', is_solved="None", input_array=play_list, play_array=None)
 
