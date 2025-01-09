@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 7650
 
 # Define environment variable
-ENV NAME SudokuApp
+ENV NAME=SudokuApp
 
 # Run app.py when the container launches
 CMD ["python", "app.py"]
