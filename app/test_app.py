@@ -6,7 +6,7 @@ from sudopy import Sudoku
 class TestSudokuApp(unittest.TestCase):
 
     def setUp(self):
-        """Set up the Flask test client."""
+        # Set up the Flask test client.
         self.app = app.test_client()
         self.app.testing = True
 
@@ -14,7 +14,8 @@ class TestSudokuApp(unittest.TestCase):
         """Test the home '/' route."""
         response = self.app.get("/")
         self.assertEqual(response.status_code, 200)
-        """Check if specific text or HTML elements are present in the rendered page"""
+        # Check if specific text or HTML elements 
+        # are present in the rendered page
         self.assertIn(b"Sudoku Menu", response.data,
                       "Menu page should contain 'Sudoku Menu'.")
 

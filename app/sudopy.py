@@ -68,7 +68,6 @@ class Sudoku:
 
         return list_r, list_c, list_b
 
-
     def check_num(self, x, y, num):
         """
         Checks if a single number is valid in a given row, column, or box.
