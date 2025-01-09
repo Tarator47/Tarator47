@@ -9,21 +9,33 @@ on:
       - main
 
 jobs:
-  Linting:
+  lint:
+    name: Lint Code
     runs-on: ubuntu-latest
     steps:
-      - name: Download code
-        uses: actions/download-artifact@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          name: code
-          path: .
-      - name: run linting
-        uses: super-linter/super-linter/slim@v5 
-        env:
-          DEFAULT_BRANCH: main
-          # To report GitHub Actions status checks
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-          DISABLE_ERRORS: true 
+          python-version: '3.x'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install JavaScript dependencies
+        run: |
+          npm install -g eslint
+      - name: Run Python Linter
+        run: |
+          flake8 .
+      - name: Run JavaScript Linter
+        run: |
+          eslint .
 
   sonarcloud:
     name: SonarCloud Analysis
