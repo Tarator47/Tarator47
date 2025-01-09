@@ -89,7 +89,6 @@ jobs:
   trivy:
     name: Trivy Security Scan
     runs-on: ubuntu-24.04
-    needs: build
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -100,17 +99,18 @@ jobs:
   tests:
     name: Run Tests
     runs-on: ubuntu-24.04
-    needs: build
+    needs: [lint, snyk, trivy]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
       - name: Run Tests
         run: |
           echo "Running tests..."  # Replace this echo with your actual test command.
+
   build:
     name: Build Project
     runs-on: ubuntu-24.04
-    needs: [lint, snyk]
+    needs: tests
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -129,7 +129,7 @@ jobs:
   deploy:
     name: Deploy Application
     runs-on: ubuntu-24.04
-    needs: [tests, trivy]
+    needs: build
     steps:
       - name: Download Docker Image Artifact
         uses: actions/download-artifact@v2
