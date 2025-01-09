@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template
-from sudopy import Sudoku, Generate
+from app.sudopy import Sudoku, Generate
 import ctypes
 
 app = Flask(__name__)

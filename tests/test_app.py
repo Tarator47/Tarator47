@@ -1,6 +1,6 @@
 import unittest
-from app import app
-from sudopy import Sudoku
+from app.app import app
+from app.sudopy import Sudoku
 
 class TestSudokuApp(unittest.TestCase):
 
