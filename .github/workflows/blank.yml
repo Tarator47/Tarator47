@@ -107,8 +107,8 @@ jobs:
         run: |
           echo "Running tests..."  # Replace this echo with your actual test command.
 
-  build:
-    name: Build Project
+  deploy:
+    name: Build And Deploy Project
     runs-on: ubuntu-24.04
     needs: tests
     steps:
@@ -117,28 +117,6 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -t ghcr.io/tarator47/sudoku-app:latest ./app
-      - name: Save Docker Image
-        run: |
-          docker save ghcr.io/tarator47/sudoku-app:latest -o sudoku-app.tar
-      - name: Upload Docker Image as Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: sudoku-app-image
-          path: sudoku-app.tar
-
-  deploy:
-    name: Deploy Application
-    runs-on: ubuntu-24.04
-    needs: build
-    steps:
-      - name: Download Docker Image Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: sudoku-app-image
-          path: .
-      - name: Load Docker Image
-        run: |
-          docker load -i sudoku-app.tar
       - name: Log in to GitHub Container Registry
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
