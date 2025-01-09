@@ -37,6 +37,7 @@ jobs:
           flake8 .
       - name: Run JavaScript Linter
         run: |
+          npm init @eslint/config
           eslint .
 
   sonarcloud:
