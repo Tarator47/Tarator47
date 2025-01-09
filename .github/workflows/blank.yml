@@ -13,7 +13,7 @@ on:
 jobs:
   lint:
     name: Lint Code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -40,7 +40,7 @@ jobs:
           npx prettier --write .
   sonarcloud:
     name: SonarCloud Analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -55,7 +55,7 @@ jobs:
 
   snyk:
     name: Snyk Security Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -68,7 +68,7 @@ jobs:
 
   build:
     name: Build Project
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [lint, sonarcloud, snyk]
     steps:
       - name: Checkout Code
@@ -80,7 +80,7 @@ jobs:
 
   trivy:
     name: Trivy Security Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - name: Checkout Code
@@ -91,7 +91,7 @@ jobs:
 
   tests:
     name: Run Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - name: Checkout Code
@@ -103,7 +103,7 @@ jobs:
 
   deploy:
     name: Deploy Application
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [tests, trivy]
     steps:
       - name: Checkout Code

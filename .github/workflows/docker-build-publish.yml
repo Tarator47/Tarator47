@@ -11,7 +11,7 @@ on:
 jobs:
   build-and-publish:
     name: Build and Publish Sudoku Docker Image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     # Step 1: Checkout the code
