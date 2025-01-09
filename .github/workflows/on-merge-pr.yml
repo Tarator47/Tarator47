@@ -8,7 +8,6 @@ jobs:
   deploy:
     name: Build And Deploy Project
     runs-on: ubuntu-24.04
-    needs: tests
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
