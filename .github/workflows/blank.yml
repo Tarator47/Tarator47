@@ -52,18 +52,20 @@ jobs:
             -Dsonar.sources="." \
             -Dsonar.host.url="https://sonarcloud.io" \
             -Dsonar.login="${{ secrets.SONAR_TOKEN }}"
-
   snyk:
-    name: Snyk Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          command: monitor
+      name: Snyk Security Scan
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout Code
+          uses: actions/checkout@v3
+        - name: Set up Snyk CLI
+          run: |
+            npm install -g snyk
+        - name: Authenticate with Snyk
+          run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        - name: Snyk Monitor
+          run: snyk monitor .  # Point to the root of the project
+
 
   build:
     name: Build Project
