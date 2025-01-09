@@ -1,16 +1,13 @@
-name: Build and Save Docker Image
+name: Build and Publish Docker Image to GitHub Packages
 
 on:
   push:
     branches:
       - main  # Trigger workflow on pushes to the 'main' branch
-  pull_request:
-    branches:
-      - main  # Trigger workflow on pull requests to the 'main' branch
 
 jobs:
-  build-and-save:
-    name: Build and Save Sudoku Docker Image
+  build-and-publish:
+    name: Build and Publish Sudoku Docker Image
     runs-on: ubuntu-latest
 
     steps:
@@ -18,20 +15,17 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    # Step 2: Build the Docker image
+    # Step 2: Log in to GitHub Container Registry
+    - name: Log in to GitHub Container Registry
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    # Step 3: Build the Docker image
     - name: Build Docker Image
       run: |
-        docker build -t sudoku-app:latest ./app
+        docker build -t ghcr.io/tarator47/sudoku-app:latest .
 
-    # Step 3: Save Docker image to file
-    - name: Save Docker Image
+    # Step 4: Push the Docker image to GitHub Packages
+    - name: Push Docker Image
       run: |
-        docker save -o sudoku-app.tar sudoku-app:latest
-      shell: bash
-
-    # Step 4: Upload Docker image as an artifact
-    - name: Upload Docker Image
-      uses: actions/upload-artifact@v4
-      with:
-        name: sudoku-app
-        path: sudoku-app.tar
+        docker push ghcr.io/tarator47/sudoku-app:latest
