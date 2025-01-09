@@ -64,6 +64,7 @@ jobs:
             -Dsonar.sources="." \
             -Dsonar.host.url="https://sonarcloud.io" \
             -Dsonar.login="${{ secrets.SONAR_TOKEN }}"
+            -X
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
             
