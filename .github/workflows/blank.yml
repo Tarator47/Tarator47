@@ -31,11 +31,13 @@ jobs:
           node-version: '14'
       - name: Install JavaScript dependencies
         run: |
-          npm install eslint@8
+          npm install -g eslint@8
       - name: Run Python Linter
         run: |
           flake8 .
-
+      - name: Run JavaScript Linter
+        run: |
+          eslint .
   sonarcloud:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
