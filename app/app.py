@@ -42,7 +42,7 @@ def play():
             for i in range(9):
                 row_list = []
                 for j in range(9):
-                    id = "" + str(i*9 + j)
+                    id = "" + str(i * 9 + j)
                     content = request.form[id]
                     if content == "":
                         row_list.append(0)
@@ -59,7 +59,7 @@ def play():
                 # is_solved will be "None" since the sudoku is not completed
                 # input_array is initialized to play_list, which contains the starting numbers of a sudoku
                 # play_array refers to the compiled 2D list after a user has finished playing a sudoku; in this case, play_array will be None
-                return render_template('play.html', is_solved = "None", input_array = play_list, play_array = None)
+                return render_template('play.html', is_solved="None", input_array=play_list, play_array=None)
 
             # if the POST request is from '/play" (when the user checks their sudoku)
             elif '/play' in request.referrer:
@@ -68,17 +68,17 @@ def play():
                 # check_array is initialized to a 2D list of booleans that signify if each cell is valid
                 # input_array is initialized to play_list, which contains the starting numbers of a sudoku
                 # play_array refers to the compiled 2D list after a user has finished playing the sudoku
-                return render_template('play.html', is_solved = s.check_grid(), check_array = s.check_grid_items(), input_array = play_list, play_array = s.return_array())
+                return render_template('play.html', is_solved=s.check_grid(), check_array=s.check_grid_items(), input_array=play_list, play_array=s.return_array())
 
         # if the POST request is from the menu page
         elif '/' in request.referrer:
 
             # obtain the user specified difficulty
-            if request.form.get('easy') != None:
+            if request.form.get('easy') is not None:
                 content = request.form.get('easy')
-            elif request.form.get('medium') != None:
+            elif request.form.get('medium') is not None:
                 content = request.form.get('medium')
-            elif request.form.get('hard') != None:
+            elif request.form.get('hard') is not None:
                 content = request.form.get('hard')
             else:
                 content = request.form.get('expert')
@@ -88,9 +88,9 @@ def play():
                 g = Generate(content)
                 play_list = g.generate_sudoku()
                 has_gen = True
-            return render_template('play.html', is_solved = "None", input_array = play_list, play_array=None)
+            return render_template('play.html', is_solved="None", input_array=play_list, play_array=None)
     else:
-        return render_template('play.html', is_solved="None", input_array = play_list, play_array = None)
+        return render_template('play.html', is_solved="None", input_array=play_list, play_array=None)
 
 
 @app.route('/solution', methods=['POST', 'GET'])
@@ -102,7 +102,7 @@ def solution():
         for i in range(9):
             row_list = []
             for j in range(9):
-                id = "" + str(i*9 + j)
+                id = "" + str(i * 9 + j)
                 content = request.form[id]
                 if content == "":
                     row_list.append(0)
@@ -114,7 +114,7 @@ def solution():
         s = Sudoku(sudoku_grid_list)
         s.solve()
 
-        return render_template('solution.html', solved_array = s.return_array())
+        return render_template('solution.html', solved_array=s.return_array())
     else:
         return render_template('menu.html')
 
