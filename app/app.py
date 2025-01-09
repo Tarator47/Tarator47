@@ -64,7 +64,8 @@ def play():
                 # a user has finished playing a sudoku;
                 # in this case, play_array will be None
                 return render_template(
-                    'play.html', is_solved="None", input_array=play_list, play_array=None
+                    'play.html', is_solved="None",
+                    input_array=play_list, play_array=None
                 )
 
             # if the POST request is from '/play"
@@ -109,8 +110,9 @@ def play():
                 input_array=play_list, play_array=None
             )
     else:
-        return render_template('play.html', 
-                               is_solved="None", input_array=play_list, play_array=None)
+        return render_template('play.html',
+                               is_solved="None",
+                               input_array=play_list, play_array=None)
 
 
 @app.route('/solution', methods=['POST', 'GET'])
