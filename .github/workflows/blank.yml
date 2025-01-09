@@ -92,7 +92,7 @@ jobs:
   build:
     name: Build Project
     runs-on: ubuntu-24.04
-    needs: [lint, sonarcloud, snyk]
+    needs: [lint, snyk]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
