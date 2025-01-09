@@ -150,6 +150,6 @@ class Generate:
                                    if len(line.strip()) > 2])
         return [
             [0 if char == '.' else int(char)
-            for char in rand_line[i * 9:(i + 1) * 9]]
+             for char in rand_line[i * 9:(i + 1) * 9]]
             for i in range(9)
         ]
