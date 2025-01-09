@@ -29,14 +29,10 @@ This project is a multi-dimensional Sudoku web application, which runs with a Fl
 <a id="about"></a>
 
 ## About Us
-This website was co-created and designed from scratch by <b>Ayush Garg</b> and <b>Suchit Sharma</b> in the summer of 2020.
-
+This website was co-created and designed from scratch by Boris Boqdjiev at the Winter Break 2024. 
 As avid fans of solving Sudokus, we set out on this multi-week project to learn about some new technologies and frameworks, get a glimpse into unifying backend and frontend code, and create a one-stop-shop for all things Sudoku!
 
 <p>Having encountered many interesting features across Sudoku mobile and web applications, we sought to combine all of them into one place for the enjoyment of friends and family, as well as any and all Sudoku lovers! We encourage you to give it a try!</p>
-
-For any questions, reporting of bugs, or requests for additional features, email us at 
-agss.projects@gmail.com.
 
 <a id="walkthrough"></a>
 
