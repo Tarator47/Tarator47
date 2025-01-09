@@ -53,7 +53,7 @@ jobs:
           curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
           unzip sonar-scanner-cli.zip
           mv sonar-scanner-5.0.1.3006-linux sonar-scanner
-          export PATH=$PATH:$(pwd)/sonar-scanner/bin
+          echo "$(pwd)/sonar-scanner/bin" >> $GITHUB_PATH
 
       # Step 3: Run SonarScanner
       - name: SonarCloud Scan
