@@ -64,7 +64,7 @@ jobs:
         - name: Authenticate with Snyk
           run: snyk auth ${{ secrets.SNYK_TOKEN }}
         - name: Snyk Monitor
-          run: snyk monitor .  # Point to the root of the project
+          run: snyk monitor ../../app  # Point to the root of the project
 
 
   build:
