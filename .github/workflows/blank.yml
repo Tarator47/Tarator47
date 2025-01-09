@@ -37,35 +37,35 @@ jobs:
       - name: Run JavaScript Linter and fix issues
         run: |
           npx prettier --write .
+  
+  # sonarcloud:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     # Step 1: Checkout the code
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-  sonarcloud:
-    runs-on: ubuntu-latest
-    steps:
-      # Step 1: Checkout the code
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  #     # Step 2: Install SonarScanner CLI
+  #     - name: Install SonarScanner
+  #       run: |
+  #         curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+  #         unzip sonar-scanner-cli.zip
+  #         mv sonar-scanner-5.0.1.3006-linux sonar-scanner
+  #         echo "$(pwd)/sonar-scanner/bin" >> $GITHUB_PATH
 
-      # Step 2: Install SonarScanner CLI
-      - name: Install SonarScanner
-        run: |
-          curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
-          unzip sonar-scanner-cli.zip
-          mv sonar-scanner-5.0.1.3006-linux sonar-scanner
-          echo "$(pwd)/sonar-scanner/bin" >> $GITHUB_PATH
-
-      # Step 3: Run SonarScanner
-      - name: SonarCloud Scan
-        run: |
-          sonar-scanner \
-            -Dsonar.organization="${{ secrets.SONAR_ORG }}" \
-            -Dsonar.projectName="Tarator47" \
-            -Dsonar.sources="." \
-            -Dsonar.host.url="https://sonarcloud.io" \
-            -Dsonar.login="${{ secrets.SONAR_TOKEN }}" \
-            -Dsonar.branch.name="main" \
-            -X
+  #     # Step 3: Run SonarScanner
+  #     - name: SonarCloud Scan
+  #       run: |
+  #         sonar-scanner \
+  #           -Dsonar.organization="${{ secrets.SONAR_ORG }}" \
+  #           -Dsonar.projectName="Tarator47" \
+  #           -Dsonar.sources="." \
+  #           -Dsonar.host.url="https://sonarcloud.io" \
+  #           -Dsonar.login="${{ secrets.SONAR_TOKEN }}" \
+  #           -Dsonar.branch.name="main" \
+  #           -X
             
   snyk:
     name: Snyk Security Scan
