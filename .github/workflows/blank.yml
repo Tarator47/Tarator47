@@ -59,12 +59,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+      - name: Set up Snyk CLI
+        run: |
+          npm install -g snyk
+      - name: Authenticate with Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
       - name: Snyk Scan
-        uses: snyk/actions@v0.6.2
-        with:
-          args: test
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk test
 
   build:
     name: Build Project
