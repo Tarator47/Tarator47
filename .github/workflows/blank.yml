@@ -53,18 +53,28 @@ jobs:
             -Dsonar.host.url="https://sonarcloud.io" \
             -Dsonar.login="${{ secrets.SONAR_TOKEN }}"
   snyk:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@master
-        - uses: snyk/actions/setup@master
-        - name: Test dependencies with Snyk
-          run: snyk test ./app
-          env:
-            SNYK_TOKEN: ${{secrets.SNYK_TOKEN}}
-        - name: Monitor dependencies for security issues with Snyk
-          run: snyk monitor ./app
-          env:
-            SNYK_TOKEN: ${{secrets.SNYK_TOKEN}}
+    name: Snyk Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+  
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'  # Adjust Python version as needed
+  
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+  
+      - name: Snyk Scan
+        uses: snyk/actions@v0.6.2
+        with:
+          args: test ./app  # Specify the correct folder if your project is in ./app
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
   build:
     name: Build Project
