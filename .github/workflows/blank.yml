@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - Preso 
+      - Preso
   pull_request:
     branches:
       - main
@@ -37,7 +37,7 @@ jobs:
       - name: Run JavaScript Linter and fix issues
         run: |
           npx prettier --write .
-  
+
   # sonarcloud:
   #   runs-on: ubuntu-latest
   #   steps:
@@ -66,39 +66,25 @@ jobs:
   #           -Dsonar.login="${{ secrets.SONAR_TOKEN }}" \
   #           -Dsonar.branch.name="main" \
   #           -X
-            
+
   snyk:
     name: Snyk Security Scan
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3  # Use the latest stable version of the checkout action
-  
+        uses: actions/checkout@v3
       - name: Set up Snyk
-        uses: snyk/actions/setup@master  # Set up Snyk with the correct action
+        uses: snyk/actions/setup@master
         with:
-          token: ${{ secrets.SNYK_TOKEN }}  # Use the secret for Snyk authentication
-  
+          token: ${{ secrets.SNYK_TOKEN }}
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r ./app/requirements.txt  # Install project dependencies
+          pip install -r ./app/requirements.txt
       - name: Authenticate with Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
       - name: Snyk Scan
-        run: snyk test ./app  # Replace ./app with the correct folder if necessary
-
-
-  build:
-    name: Build Project
-    runs-on: ubuntu-24.04
-    needs: [lint, snyk]
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      - name: Build
-        run: |
-          docker build -t ghcr.io/tarator47/sudoku-app:latest ./app
+        run: snyk test ./app
 
   trivy:
     name: Trivy Security Scan
@@ -120,14 +106,39 @@ jobs:
         uses: actions/checkout@v3
       - name: Run Tests
         run: |
-          # Replace with actual test command
-          echo "Running tests..."
+          echo "Running tests..."  # Replace this echo with your actual test command.
+  build:
+    name: Build Project
+    runs-on: ubuntu-24.04
+    needs: [lint, snyk]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Build Docker Image
+        run: |
+          docker build -t ghcr.io/tarator47/sudoku-app:latest ./app
+      - name: Save Docker Image
+        run: |
+          docker save ghcr.io/tarator47/sudoku-app:latest -o sudoku-app.tar
+      - name: Upload Docker Image as Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: sudoku-app-image
+          path: sudoku-app.tar
 
   deploy:
     name: Deploy Application
     runs-on: ubuntu-24.04
     needs: [tests, trivy]
     steps:
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: sudoku-app-image
+          path: .
+      - name: Load Docker Image
+        run: |
+          docker load -i sudoku-app.tar
       - name: Log in to GitHub Container Registry
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
