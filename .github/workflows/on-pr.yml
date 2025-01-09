@@ -1,0 +1,70 @@
+name: CI Pipeline
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install JavaScript dependencies
+        run: |
+          npm install --save-dev prettier
+      - name: Run Python Linter
+        run: |
+          flake8 .
+      - name: Run JavaScript Linter and fix issues
+        run: |
+          npx prettier --write .
+  snyk:
+    name: Snyk Security Scan
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Set up Snyk
+        uses: snyk/actions/setup@master
+        with:
+          token: ${{ secrets.SNYK_TOKEN }}
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ./app/requirements.txt
+      - name: Authenticate with Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+      - name: Snyk Scan
+        run: snyk test ./app
+  trivy:
+    name: Trivy Security Scan
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Trivy Scan
+        run: |
+          docker run --rm -v ./app:/app aquasec/trivy fs /app
+  tests:
+    name: Run Tests
+    runs-on: ubuntu-24.04
+    needs: [lint, snyk, trivy]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Run Tests
+        run: |
+          echo "Running tests..."  # Replace this echo with your actual test command.
