@@ -14,8 +14,9 @@ class TestSudokuApp(unittest.TestCase):
         """Test the home '/' route."""
         response = self.app.get("/")
         self.assertEqual(response.status_code, 200)
-        # Check if specific text or HTML elements are present in the rendered page
-        self.assertIn(b"Sudoku Menu", response.data, "Menu page should contain 'Sudoku Menu'.")
+        """Check if specific text or HTML elements are present in the rendered page"""
+        self.assertIn(b"Sudoku Menu", response.data,
+                      "Menu page should contain 'Sudoku Menu'.")
 
     def test_solve_method(self):
         """Test the Sudoku 'solve' method."""
@@ -32,8 +33,11 @@ class TestSudokuApp(unittest.TestCase):
         ]
         sudoku = Sudoku(grid)
         solved = sudoku.solve()
-        self.assertTrue(solved, "The Sudoku puzzle should be solvable.")
-        self.assertTrue(sudoku.check_grid(), "The solved Sudoku puzzle should be valid.")
+        self.assertTrue(solved,
+                        "The Sudoku puzzle should be solvable.")
+        self.assertTrue(sudoku.check_grid(),
+                        "The solved Sudoku puzzle should be valid.")
+
 
 if __name__ == "__main__":
     unittest.main()
