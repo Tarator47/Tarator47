@@ -4,7 +4,8 @@ import random
 class Sudoku:
     def __init__(self, matrix):
         """
-        Initializes an object of type Sudoku with a 2D list containing the digits.
+        Initializes an object of type Sudoku
+        with a 2D list containing the digits.
 
         Parameters:
         matrix (list): a 2d list that the object uses to initialize self.grid
@@ -42,7 +43,8 @@ class Sudoku:
 
     def create_RCB_lists(self, x, y):
         """
-        Creates three separate lists of all numbers in a given row, column, and box.
+        Creates three separate lists of all
+        numbers in a given row, column, and box.
 
         Parameters:
         x (int): x location that should be checked
@@ -86,7 +88,8 @@ class Sudoku:
 
     def solve(self):
         """
-        Recursive function that solves a given grid with a backtracking algorithm.
+        Recursive function that solves
+        a given grid with a backtracking algorithm.
 
         Returns:
         boolean: True if the solve is valid, False otherwise
@@ -106,7 +109,8 @@ class Sudoku:
 
     def locate_empty(self):
         """
-        Finds a location in self.grid that is 0, representing an empty location.
+        Finds a location in self.grid that
+        is 0, representing an empty location.
 
         Returns:
         tuple: the empty location in the grid, or None if the grid is full.
@@ -124,23 +128,28 @@ class Generate:
         Initializes a Generate object with a difficulty_level attribute.
 
         Parameters:
-        difficulty_level (str): specified difficulty ("easy", "medium", "hard", "expert")
+        difficulty_level (str): specified
+        difficulty ("easy", "medium", "hard", "expert")
         """
         self.difficulty_level = difficulty_level
 
     def generate_sudoku(self):
         """
-        Selects a random Sudoku with a difficulty based on self.difficulty_level.
+        Selects a random Sudoku with
+        a difficulty based on self.difficulty_level.
 
         Returns:
-        list: a 2D list initialized with digits that correspond to a unique sudoku.
+        list: a 2D list initialized with
+        digits that correspond to a unique sudoku.
         """
         file_name = f'sudokus/sudokus_{self.difficulty_level}.txt'
         with open(file_name, 'r') as file:
             all_lines = file.readlines()
 
-        rand_line = random.choice([line for line in all_lines if len(line.strip()) > 2])
+        rand_line = random.choice([line for line in all_lines
+                                   if len(line.strip()) > 2])
         return [
-            [0 if char == '.' else int(char) for char in rand_line[i * 9:(i + 1) * 9]]
+            [0 if char == '.' else int(char)
+            for char in rand_line[i * 9:(i + 1) * 9]]
             for i in range(9)
         ]
