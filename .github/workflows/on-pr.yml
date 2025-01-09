@@ -68,3 +68,19 @@ jobs:
       - name: Run Tests
         run: |
           echo "Running tests..."  # Replace this echo with your actual test command.
+  test:
+    name: Run Python Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r app/requirements.txt
+      - name: Run tests
+        run: python -m unittest discover ./app
