@@ -58,9 +58,9 @@ class Sudoku:
         list_c = [self.grid[i][y] for i in range(9)]
         list_b = []
 
-        mod_r, mod_c = (x + 1) % 3, (y + 1) % 3
-        list_mr = [x - mod_r + i for i in range(3)]
-        list_mc = [y - mod_c + i for i in range(3)]
+        mod_r, mod_c = (x % 3), (y % 3)
+        list_mr = [x - mod_r + i for i in range(3) if 0 <= x - mod_r + i < 9]
+        list_mc = [y - mod_c + i for i in range(3) if 0 <= y - mod_c + i < 9]
 
         for i in list_mr:
             for j in list_mc:
@@ -85,6 +85,35 @@ class Sudoku:
 
         list_r, list_c, list_b = self.create_RCB_lists(x, y)
         return num not in list_r and num not in list_c and num not in list_b
+
+    def check_grid(self):
+        """
+        Validates the Sudoku grid by ensuring that
+        no row, column, or 3x3 box contains duplicate numbers.
+
+        Returns:
+        boolean: True if the grid is valid, False otherwise
+        """
+        # Check rows and columns
+        for i in range(9):
+            row = [num for num in self.grid[i] if num != 0]
+            col = [self.grid[j][i] for j in range(9) if self.grid[j][i] != 0]
+            if len(row) != len(set(row)) or len(col) != len(set(col)):
+                return False
+
+        # Check 3x3 boxes
+        for box_row in range(0, 9, 3):
+            for box_col in range(0, 9, 3):
+                box = []
+                for i in range(3):
+                    for j in range(3):
+                        num = self.grid[box_row + i][box_col + j]
+                        if num != 0:
+                            box.append(num)
+                if len(box) != len(set(box)):
+                    return False
+
+        return True
 
     def solve(self):
         """
