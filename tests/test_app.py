@@ -13,7 +13,9 @@ class TestSudokuApp(unittest.TestCase):
         # Test the home '/' route
         response = self.app.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"menu.html", response.data, "Menu route should return the menu template.")
+        # Check if specific text or HTML elements are present in the rendered page
+        self.assertIn(b"Sudoku Menu", response.data, "Menu page should contain 'Sudoku Menu'.")
+
 
     def test_solve_method(self):
         # Test the Sudoku 'solve' method
