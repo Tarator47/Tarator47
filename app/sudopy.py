@@ -57,16 +57,17 @@ class Sudoku:
         list_r = self.grid[x]
         list_c = [self.grid[i][y] for i in range(9)]
         list_b = []
-
-        mod_r, mod_c = (x + 1) % 3, (y + 1) % 3
-        list_mr = [x - mod_r + i for i in range(3)]
-        list_mc = [y - mod_c + i for i in range(3)]
-
+    
+        mod_r, mod_c = (x % 3), (y % 3)
+        list_mr = [x - mod_r + i for i in range(3) if 0 <= x - mod_r + i < 9]
+        list_mc = [y - mod_c + i for i in range(3) if 0 <= y - mod_c + i < 9]
+    
         for i in list_mr:
             for j in list_mc:
                 list_b.append(self.grid[i][j])
-
+    
         return list_r, list_c, list_b
+
 
     def check_num(self, x, y, num):
         """
