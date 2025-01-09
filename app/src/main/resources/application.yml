@@ -1,5 +1,0 @@
-micronaut:
-  server:
-    port: 8000
-  application:
-    name: app
