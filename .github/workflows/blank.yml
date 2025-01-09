@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - Preso
   pull_request:
     branches:
       - main
+      - Preso
 
 jobs:
   lint:
