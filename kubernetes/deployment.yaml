@@ -23,6 +23,14 @@ spec:
       containers:
       - name: sudoku-app
         image: ghcr.io/tarator47/sudoku-app:IMAGE_TAG_PLACEHOLDER
+        resources:
+          requests:
+            memory: 100Mi
+            cpu: 0.5
+            ephemeral-storage: "100Mi"
+          limits:
+            memory: 100Mi
+            cpu: 0.5
         ports:
         - containerPort: 7650
         env:
