@@ -54,7 +54,7 @@ jobs:
           kubectl create namespace sudoku-app
       - name: Create Secret
         run: |
-          kubectl create secret docker-registry -n sudoku-app regcred --docker-username {{ secrets.DOCKER_USERNAME }} --docker-password {{ secrets.DOCKER_PASSWORD }} --docker-server gcr.io
+          kubectl create secret docker-registry -n sudoku-app regcred --docker-username ${{ secrets.DOCKER_USERNAME }} --docker-password ${{ secrets.DOCKER_PASSWORD }} --docker-server gcr.io
       - name: Apply Deployment
         run: |
           kubectl apply -f ./kubernetes/deployment.yaml --namespace=sudoku-app
