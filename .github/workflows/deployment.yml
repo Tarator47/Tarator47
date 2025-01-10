@@ -1,0 +1,35 @@
+name: Minikube Kubernetes Workflow
+on:
+  push:
+    branches:
+      - tarator
+jobs:
+  minikube-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Install Minikube
+        run: |
+          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+          sudo install minikube-linux-amd64 /usr/local/bin/minikube
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+      - name: Start Minikube
+        run: |
+          minikube start --driver=none
+      - name: Create Namespace
+        run: |
+          kubectl create namespace sudoku-app
+      - name: Create Secret
+        run: |
+          kubectl create secret docker-registry -n sudoku-app regcred --docker-username {{ secrets.DOCKER_USERNAME }} --docker-password {{ secrets.DOCKER_PASSWORD }} --docker-server gcr.io
+      - name: Apply Deployment
+        run: |
+          kubectl apply -f ./kubernetes/deployment.yaml --namespace=sudoku-app
+      - name: Run a Pod with Curl and Execute Command
+        run: |
+          kubectl run temp-pod --image=ubuntu --namespace=test-namespace -- sh -c "apt-get update && apt-get install -y curl && sleep 3600"
+          kubectl exec temp-pod --namespace=test-namespace -- curl http://sudoku-app-service.sudoku-app.svc.cluster.local:7650
