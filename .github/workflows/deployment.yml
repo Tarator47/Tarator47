@@ -60,5 +60,6 @@ jobs:
           kubectl apply -f ./kubernetes/deployment.yaml --namespace=sudoku-app
       - name: Run a Pod with Curl and Execute Command
         run: |
+          kubectl create namespace test-namespace
           kubectl run temp-pod --image=ubuntu --namespace=test-namespace -- sh -c "apt update && apt install -y curl && sleep 3600"
           kubectl exec temp-pod --namespace=test-namespace -- curl http://sudoku-app-service.sudoku-app.svc.cluster.local:7650
