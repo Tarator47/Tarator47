@@ -19,6 +19,7 @@ spec:
       labels:
         app: sudoku-app
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: sudoku-app
         image: ghcr.io/tarator47/sudoku-app:IMAGE_TAG_PLACEHOLDER
