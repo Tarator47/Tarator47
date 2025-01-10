@@ -17,31 +17,38 @@ jobs:
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-      - name: Install dependencies
+      # - name: Install dependencies
+      #   run: |
+      #     sudo apt update
+      #     sudo apt install conntrack
+      #     VERSION="v1.23.0"
+      #     curl -L https://github.com/kubernetes-sigs/cri-tools/releases/download/${VERSION}/crictl-${VERSION}-linux-amd64.tar.gz -o crictl-${VERSION}-linux-amd64.tar.gz
+      #     tar -zxvf crictl-${VERSION}-linux-amd64.tar.gz
+      #     sudo mv crictl /usr/local/bin/crictl
+      #     sudo apt install -y go-md2man
+      #     sudo apt install wget
+      #     VERSION="0.2.5"
+      #     wget https://github.com/Mirantis/cri-dockerd/releases/download/v${VERSION}/cri-dockerd-${VERSION}.amd64.tgz
+      #     tar xvf cri-dockerd-${VERSION}.amd64.tgz
+      #     sudo mv cri-dockerd /usr/local/bin/
+      #     wget https://github.com/Mirantis/cri-dockerd/raw/refs/heads/master/packaging/systemd/cri-docker.service
+      #     wget https://github.com/Mirantis/cri-dockerd/raw/refs/heads/master/packaging/systemd/cri-docker.socket
+      #     sudo mv cri-docker.service /etc/systemd/system/
+      #     sudo mv cri-docker.socket /etc/systemd/system/
+      #     sudo systemctl daemon-reload
+      #     sudo systemctl enable --now cri-docker.socket
+      #     sudo systemctl start cri-docker.service
+      - name: Install Docker
         run: |
           sudo apt update
-          sudo apt install conntrack
-          VERSION="v1.23.0"
-          curl -L https://github.com/kubernetes-sigs/cri-tools/releases/download/${VERSION}/crictl-${VERSION}-linux-amd64.tar.gz -o crictl-${VERSION}-linux-amd64.tar.gz
-          tar -zxvf crictl-${VERSION}-linux-amd64.tar.gz
-          sudo mv crictl /usr/local/bin/crictl
-          sudo apt install -y go-md2man
-          sudo apt install wget
-          VERSION="0.2.5"
-          wget https://github.com/Mirantis/cri-dockerd/releases/download/v${VERSION}/cri-dockerd-${VERSION}.amd64.tgz
-          tar xvf cri-dockerd-${VERSION}.amd64.tgz
-          sudo mv cri-dockerd /usr/local/bin/
-          wget https://github.com/Mirantis/cri-dockerd/raw/refs/heads/master/packaging/systemd/cri-docker.service
-          wget https://github.com/Mirantis/cri-dockerd/raw/refs/heads/master/packaging/systemd/cri-docker.socket
-          sudo mv cri-docker.service /etc/systemd/system/
-          sudo mv cri-docker.socket /etc/systemd/system/
-          sudo systemctl daemon-reload
-          sudo systemctl enable --now cri-docker.socket
-          sudo systemctl start cri-docker.service
-
+          sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+          sudo apt update
+          sudo apt install -y docker-ce docker-ce-cli containerd.io
       - name: Start Minikube
         run: |
-          minikube start --driver=none
+          minikube start --driver=docker
       - name: Create Namespace
         run: |
           kubectl create namespace sudoku-app
@@ -53,5 +60,5 @@ jobs:
           kubectl apply -f ./kubernetes/deployment.yaml --namespace=sudoku-app
       - name: Run a Pod with Curl and Execute Command
         run: |
-          kubectl run temp-pod --image=ubuntu --namespace=test-namespace -- sh -c "apt-get update && apt-get install -y curl && sleep 3600"
+          kubectl run temp-pod --image=ubuntu --namespace=test-namespace -- sh -c "apt update && apt install -y curl && sleep 3600"
           kubectl exec temp-pod --namespace=test-namespace -- curl http://sudoku-app-service.sudoku-app.svc.cluster.local:7650
