@@ -17,9 +17,14 @@ jobs:
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-      - name: Install conntrack
+      - name: Install dependencies
         run: |
-          sudo apt update && sudo apt install conntrack && sudo apt install crictl
+          sudo apt update
+          sudo apt install conntrack
+          VERSION="v1.23.0"
+          curl -L https://github.com/kubernetes-sigs/cri-tools/releases/download/${VERSION}/crictl-${VERSION}-linux-amd64.tar.gz -o crictl-${VERSION}-linux-amd64.tar.gz
+          tar -zxvf crictl-${VERSION}-linux-amd64.tar.gz
+          sudo mv crictl /usr/local/bin/crictl
       - name: Start Minikube
         run: |
           minikube start --driver=none
