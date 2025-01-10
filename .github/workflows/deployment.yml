@@ -37,6 +37,12 @@ jobs:
       - name: Apply Deployment
         run: |
           kubectl apply -f ./kubernetes/deployment.yaml --namespace=sudoku-app
-      - name: Run a Pod with Curl and Execute Command
+      - name: Create test namespace
         run: |
-          kubectl run temp-pod -it --image=ubuntu -- sh -c "apt update && apt install -y curl && curl http://sudoku-app-service.sudoku-app.svc.cluster.local:7650"
+          kubectl create namespace test-namespace
+      - name: Create service ServiceAccount
+        run: |
+          kubectl apply -f ./kubernetes/role.yaml
+      - name: Run a test pod to check result of home page
+        run: |
+          kubectl run temp-pod -n test-namespace -it --image=ubuntu -- sh -c "apt update && apt install -y curl && curl http://sudoku-app-service.sudoku-app.svc.cluster.local:7650"
