@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sudoku-app-deployment
+  labels:
+    app: sudoku-app
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: sudoku-app
+  template:
+    metadata:
+      labels:
+        app: sudoku-app
+    spec:
+      containers:
+      - name: sudoku-app
+        image: ghcr.io/tarator47/sudoku-app:latest
+        ports:
+        - containerPort: 7650
+        env:
+        - name: NAME
+          value: "SudokuApp"
+      imagePullSecrets:
+      - name: regcred
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sudoku-app-service
+  labels:
+    app: sudoku-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 7650
+      targetPort: 7650
+      protocol: TCP
+  selector:
+    app: sudoku-app
