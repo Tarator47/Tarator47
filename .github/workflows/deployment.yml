@@ -59,7 +59,7 @@ jobs:
 
       - name: Run a test pod to check result of home page
         run: |
-          kubectl run temp-pod --image=ubuntu --namespace=test-namespace --restart=Never -- sh -c "apt update && apt install -y curl; curl http://sudoku-app-service.sudoku-app.svc.cluster.local:7650"
+          kubectl run temp-pod --image=ubuntu --namespace=test-namespace --restart=Never -- sh -c "apt update && apt install -y curl && curl http://sudoku-app-service.sudoku-app.svc.cluster.local:7650"
 
       - name: Wait for pod to complete
         run: |
