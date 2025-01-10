@@ -58,10 +58,11 @@ jobs:
       - name: Trivy Scan
         run: |
           docker run --rm -v ./app:/app aquasec/trivy fs /app
+
   test:
     name: Run Python Unit Tests
     needs: [lint, snyk, trivy]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
