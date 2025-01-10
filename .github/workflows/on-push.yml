@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - tarator
 
 env:
   IMAGE_TAG: ${{ github.run_number }}
