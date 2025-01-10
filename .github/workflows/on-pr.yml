@@ -70,7 +70,8 @@ jobs:
           echo "Running tests..."  # Replace this echo with your actual test command.
   test:
     name: Run Python Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    needs: lint
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
