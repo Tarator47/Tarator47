@@ -31,6 +31,7 @@ spec:
           limits:
             memory: 100Mi
             cpu: 0.5
+            ephemeral-storage: "100Mi"
         ports:
         - containerPort: 7650
         env:
