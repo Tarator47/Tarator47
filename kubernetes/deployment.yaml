@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: sudoku-app
-        image: ghcr.io/tarator47/sudoku-app:latest
+        image: ghcr.io/tarator47/sudoku-app:IMAGE_TAG_PLACEHOLDER
         ports:
         - containerPort: 7650
         env:
@@ -29,7 +29,6 @@ spec:
           value: "SudokuApp"
       imagePullSecrets:
       - name: regcred
-
 ---
 apiVersion: v1
 kind: Service
