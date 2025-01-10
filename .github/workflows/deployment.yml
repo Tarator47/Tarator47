@@ -63,7 +63,7 @@ jobs:
 
       - name: Wait for pod to complete
         run: |
-          kubectl wait --for=condition=complete pod/temp-pod -n test-namespace --timeout=120s
+          kubectl wait --for=jsonpath="status.containerStatuses[0].state.terminated.reason"=Completed --timeout=120s pod/temp-pod -n test-namespace
 
       - name: Retrieve logs from the pod
         run: |
