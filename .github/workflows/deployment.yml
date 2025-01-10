@@ -25,6 +25,20 @@ jobs:
           curl -L https://github.com/kubernetes-sigs/cri-tools/releases/download/${VERSION}/crictl-${VERSION}-linux-amd64.tar.gz -o crictl-${VERSION}-linux-amd64.tar.gz
           tar -zxvf crictl-${VERSION}-linux-amd64.tar.gz
           sudo mv crictl /usr/local/bin/crictl
+          sudo apt install -y go-md2man
+          sudo apt install wget
+          VERSION="0.2.5"
+          wget https://github.com/Mirantis/cri-dockerd/releases/download/v${VERSION}/cri-dockerd-${VERSION}.amd64.tgz
+          tar xvf cri-dockerd-${VERSION}.amd64.tgz
+          sudo mv cri-dockerd /usr/local/bin/
+          wget https://github.com/Mirantis/cri-dockerd/raw/main/packaging/systemd/cri-docker.service
+          wget https://github.com/Mirantis/cri-dockerd/raw/main/packaging/systemd/cri-docker.socket
+          sudo mv cri-docker.service /etc/systemd/system/
+          sudo mv cri-docker.socket /etc/systemd/system/
+          sudo systemctl daemon-reload
+          sudo systemctl enable --now cri-docker.socket
+          sudo systemctl start cri-docker.service
+
       - name: Start Minikube
         run: |
           minikube start --driver=none
