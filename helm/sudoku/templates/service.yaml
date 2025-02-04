@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sudoku.fullname" . }}-service
+  labels:
+    {{- include "sudoku.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type | required "service type is required" }}
+  selector:
+    app: sudoku
+  ports:
+    {{- toYaml .Values.service.ports | nindent 4 }}
