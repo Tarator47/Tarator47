@@ -1,14 +1,14 @@
-{{/*
-Expand the name of the chart.
+{{/* 
+Expand the name of the chart, provide default or use nameOverride. 
+Use required for better error handling if no value is provided. 
 */}}
 {{- define "sudoku.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" | required "name is required" }}
 {{- end }}
 
 {{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
+Create a default fully qualified app name. We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name, it will be used as a full name.
 */}}
 {{- define "sudoku.fullname" -}}
 {{- if .Values.fullnameOverride }}
@@ -39,7 +39,7 @@ helm.sh/chart: {{ include "sudoku.chart" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/managed-by: {{ .Release.Service | required "Release service is required" }}
 {{- end }}
 
 {{/*
@@ -55,7 +55,7 @@ Create the name of the service account to use
 */}}
 {{- define "sudoku.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "sudoku.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "sudoku.fullname" .) .Values.serviceAccount.name | required "service account name is required" }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

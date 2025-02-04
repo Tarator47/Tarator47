@@ -6,9 +6,9 @@ metadata:
     app: sudoku
   {{- include "sudoku.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.service.type | required "service type is required" }}
   selector:
     app: sudoku
     {{- include "sudoku.selectorLabels" . | nindent 4 }}
   ports:
-  {{- .Values.service.ports | toYaml | nindent 2 }}
+  {{- .Values.service.ports | toYaml | nindent 2 | required "service ports are required" }}

@@ -6,11 +6,11 @@ metadata:
     app: sudoku
   {{- include "sudoku.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.deployment.replicas }}
+  replicas: {{ .Values.deployment.replicas | required "replicas is required" }}
   strategy:
     rollingUpdate:
-      maxSurge: {{ .Values.deployment.strategy.rollingUpdate.maxSurge }}
-      maxUnavailable: {{ .Values.deployment.strategy.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ .Values.deployment.strategy.rollingUpdate.maxSurge | required "maxSurge is required" }}
+      maxUnavailable: {{ .Values.deployment.strategy.rollingUpdate.maxUnavailable | required "maxUnavailable is required" }}
     type: {{ .Values.deployment.strategy.type | quote }}
   selector:
     matchLabels:
@@ -29,8 +29,7 @@ spec:
           value: {{ quote .Values.deployment.sudoku.env.name }}
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ quote .Values.kubernetesClusterDomain }}
-        image: {{ .Values.deployment.sudoku.image.repository }}:{{ .Values.deployment.sudoku.image.tag
-          | default .Chart.AppVersion }}
+        image: {{ .Values.deployment.sudoku.image.repository }}:{{ .Values.deployment.sudoku.image.tag | default .Chart.AppVersion }}
         name: sudoku
         ports:
         - containerPort: 7650
