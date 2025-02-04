@@ -21,11 +21,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r app/requirements.txt
 
       - name: Run unit tests
         run: |
-          pytest  # Make sure pytest is listed in your requirements.txt
+          pytest  # Make sure pytest is listed in your app/requirements.txt
 
       - name: Lint code
         run: |
