@@ -3,8 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "sudoku.fullname" . }}-deployment
   labels:
-    app: sudoku
-  {{- include "sudoku.labels" . | nindent 4 }}
+    {{- include "sudoku.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.deployment.replicas | required "replicas is required" }}
   strategy:
@@ -14,25 +13,24 @@ spec:
     type: {{ .Values.deployment.strategy.type | quote }}
   selector:
     matchLabels:
-      app: sudoku
-    {{- include "sudoku.selectorLabels" . | nindent 6 }}
+      {{- include "sudoku.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: sudoku
-      {{- include "sudoku.selectorLabels" . | nindent 8 }}
+        {{- include "sudoku.selectorLabels" . | nindent 8 }}
     spec:
       automountServiceAccountToken: false
       containers:
-      - env:
+      - name: sudoku
+        image: {{ .Values.deployment.sudoku.image.repository }}:{{ .Values.deployment.sudoku.image.tag | default .Chart.AppVersion }}
+        ports:
+        - containerPort: 7650
+        resources: 
+          {{- toYaml .Values.deployment.sudoku.resources | nindent 10 }}
+        env:
         - name: NAME
           value: {{ quote .Values.deployment.sudoku.env.name }}
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ quote .Values.kubernetesClusterDomain }}
-        image: {{ .Values.deployment.sudoku.image.repository }}:{{ .Values.deployment.sudoku.image.tag | default .Chart.AppVersion }}
-        name: sudoku
-        ports:
-        - containerPort: 7650
-        resources: {{- toYaml .Values.deployment.sudoku.resources | nindent 10 }}
       imagePullSecrets:
       - name: regcred
