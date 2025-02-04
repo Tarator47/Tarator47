@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sudoku.fullname" . }}-deployment
+  labels:
+    app: sudoku
+  {{- include "sudoku.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  strategy:
+    rollingUpdate:
+      maxSurge: {{ .Values.deployment.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.deployment.strategy.rollingUpdate.maxUnavailable }}
+    type: {{ .Values.deployment.strategy.type | quote }}
+  selector:
+    matchLabels:
+      app: sudoku
+    {{- include "sudoku.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: sudoku
+      {{- include "sudoku.selectorLabels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: NAME
+          value: {{ quote .Values.deployment.sudoku.env.name }}
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.deployment.sudoku.image.repository }}:{{ .Values.deployment.sudoku.image.tag
+          | default .Chart.AppVersion }}
+        name: sudoku
+        ports:
+        - containerPort: 7650
+        resources: {{- toYaml .Values.deployment.sudoku.resources | nindent 10 }}
+      imagePullSecrets:
+      - name: regcred

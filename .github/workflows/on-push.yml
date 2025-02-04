@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t ghcr.io/tarator47/sudoku-app:${{ env.VERSION_TAG }} ./app
+          docker build -t ghcr.io/tarator47/sudoku:${{ env.VERSION_TAG }} ./app
 
       - name: Log in to GitHub Container Registry
         run: |
@@ -35,7 +35,7 @@ jobs:
 
       - name: Push Docker Image
         run: |
-          docker push ghcr.io/tarator47/sudoku-app:${{ env.VERSION_TAG }}
+          docker push ghcr.io/tarator47/sudoku:${{ env.VERSION_TAG }}
 
   setup-environment:
     needs: deploy
@@ -69,11 +69,11 @@ jobs:
 
       - name: Create Namespace
         run: |
-          kubectl create namespace sudoku-app
+          kubectl create namespace sudoku
 
       - name: Create Secret
         run: |
-          kubectl create secret docker-registry -n sudoku-app regcred --docker-username ${{ secrets.DOCKER_USERNAME }} --docker-password ${{ secrets.DOCKER_PASSWORD }} --docker-server gcr.io
+          kubectl create secret docker-registry -n sudoku regcred --docker-username ${{ secrets.DOCKER_USERNAME }} --docker-password ${{ secrets.DOCKER_PASSWORD }} --docker-server gcr.io
 
       - name: Replace Image Tag in Deployment File
         run: |
@@ -81,11 +81,11 @@ jobs:
 
       - name: Apply Deployment
         run: |
-          kubectl apply -f ./kubernetes/deployment.yaml --namespace=sudoku-app
+          kubectl apply -f ./kubernetes/deployment.yaml --namespace=sudoku
 
       - name: Wait for Deployment
         run: |
-          kubectl rollout status deployment/sudoku-app-deployment -n sudoku-app --timeout=180s
+          kubectl rollout status deployment/sudoku-deployment -n sudoku --timeout=180s
 
       - name: Create test namespace
         run: |
@@ -97,7 +97,7 @@ jobs:
 
       - name: Run a test pod to check result of home page
         run: |
-          kubectl run temp-pod --image=ubuntu --namespace=test-namespace --restart=Never -- sh -c "apt update && apt install -y curl && curl http://sudoku-app-service.sudoku-app.svc.cluster.local:7650"
+          kubectl run temp-pod --image=ubuntu --namespace=test-namespace --restart=Never -- sh -c "apt update && apt install -y curl && curl http://sudoku-service.sudoku.svc.cluster.local:7650"
 
       - name: Wait for pod to complete
         run: |
