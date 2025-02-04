@@ -3,12 +3,7 @@ name: CI/CD Pipeline with Multi-Environment Deployments
 on:
   push:
     branches:
-      - main
-      - staging
-      - testing
-      - production
-      - boristotel
-      - tarator
+      - '**'  # Trigger on any branch
 
 jobs:
   build:
@@ -18,22 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run unit tests
-        run: npm test
-
-      - name: Lint code
-        run: npm run lint
-
-      - name: Build project
-        run: npm run build
+      # Removed npm steps since package.json is not present
 
       - name: Build Docker image
         run: |
