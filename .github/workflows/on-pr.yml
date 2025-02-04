@@ -30,7 +30,7 @@ jobs:
           flake8 .
       - name: Run JavaScript Linter and fix issues
         run: |
-          npx prettier --write '**/*' '!**/helm/**'
+          npx prettier --write .
   snyk:
     name: Snyk Security Scan
     runs-on: ubuntu-24.04
