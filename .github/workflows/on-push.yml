@@ -37,6 +37,14 @@ jobs:
         run: |
           docker push ghcr.io/tarator47/sudoku:${{ env.VERSION_TAG }}
 
+      - name: Tag Docker Image with latest tag
+        run: |
+          docker tag ghcr.io/tarator47/sudoku:${{ env.VERSION_TAG }} ghcr.io/tarator47/sudoku:latest
+    
+      - name: Push Docker Image with latest tag
+        run: |
+          docker push ghcr.io/tarator47/sudoku:latest
+
   setup-environment:
     needs: deploy
     runs-on: ubuntu-24.04
