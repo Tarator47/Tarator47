@@ -5,7 +5,6 @@ class Agent {
     static final String K8S_TARATOR = 'tarator.custom.domain.com'
 
     static String getKubernetesAgentYaml(Map args) {
-        String image = args.getOrDefault('image', 'jenkins-inbound-agent:3261.v9c670a_4748a_9-2-jdk17-RA')
         Boolean helmKubectl = args.getOrDefault('helmKubectl', false)
         Boolean docker = args.getOrDefault('docker', false)
 
@@ -15,7 +14,7 @@ kind: Pod
 spec:
   containers:
   - name: jnlp
-    image: cvbartifactorykce.ra-int.com/infosoft-registry/${image}
+    image: jenkins/inbound-agent
     imagePullPolicy: Always
     args: ['-disableHttpsCertValidation']
 """
@@ -23,7 +22,7 @@ spec:
         if(docker) {
            yaml += '''\
   - name: docker
-    image: cvbartifactorykce.ra-int.com/infosoft-registry-local/docker:26.1.3-dind-RA
+    image: docker:dind
     imagePullPolicy: Always
     securityContext:
       privileged: true
@@ -33,7 +32,7 @@ spec:
         if (helmKubectl) {
             yaml += '''\
   - name: helm-kubectl
-    image: cvbartifactorykce.ra-int.com/infosoft-registry/helm-kubectl-python:1.00.00.006
+    image: dtzar/helm-kubectl
     imagePullPolicy: Always
     command:
     - cat
