@@ -95,12 +95,14 @@ jobs:
           docker run -d -p 7650:7650 --name sudoku-container sudoku-app:latest
           sleep 10 
 
-      - name: OWASP ZAP Scan
+      - name: Run OWASP ZAP Scan
         run: |
-          docker run --rm -v $(pwd):/zap/wrk \
-            -t owasp/zap2docker-stable zap-baseline.py \
-            -t http://localhost:7650 \
-            -r zap_report.html || true
+          docker run --rm -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-full-scan.py \
+            -t http://sudoku-service.sudoku.svc.cluster.local:7650 \
+            -r zap_report.html
+
+      - name: Debug_List Files
+        run: ls -la
 
       - name: Upload DAST Report
         uses: actions/upload-artifact@v4
