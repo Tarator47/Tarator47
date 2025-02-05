@@ -99,13 +99,13 @@ jobs:
       - name: OWASP ZAP Scan
         run: |
           docker run --rm -v $(pwd):/zap/wrk \
-          owasp/zap2docker-stable zap-baseline.py \
+          owasp/zap2docker zap-baseline.py \
           -t http://localhost:7650 \
           -r /zap/wrk/zap_report.html || true
 
       - name: Check ZAP Logs
         run: cat zap_report.html || echo "No report found!"
-        
+
       - name: Upload DAST Report
         uses: actions/upload-artifact@v4
         with:
