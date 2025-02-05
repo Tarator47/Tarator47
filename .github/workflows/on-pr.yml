@@ -113,3 +113,24 @@ jobs:
         with:
           name: zap-dast-report
           path: $(pwd)/zap/zap_report.html
+
+  rasp:
+    name: RASP Security Scan
+    needs: test
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Contrast Security
+        run: |
+          curl -L https://pkg.contrastsecurity.com/api/v1/agent/python/latest -o contrast-agent.tar.gz
+          tar -xzf contrast-agent.tar.gz -C /usr/local/lib/python3.9/dist-packages/
+      - name: Set Contrast Security Environment Variables
+        run: |
+          echo "export CONTRAST__API__URL=https://app.contrastsecurity.com/Contrast/api" >> $GITHUB_ENV
+          echo "export CONTRAST__API__API_KEY=${{ secrets.CONTRAST_API_KEY }}" >> $GITHUB_ENV
+          echo "export CONTRAST__API__SERVICE_KEY=${{ secrets.CONTRAST_SERVICE_KEY }}" >> $GITHUB_ENV
+          echo "export CONTRAST__API__USER_KEY=${{ secrets.CONTRAST_USER_KEY }}" >> $GITHUB_ENV
+      - name: Run Application with Contrast Security
+        run: |
+          python -m contrast_agent app/app.py
