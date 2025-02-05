@@ -82,8 +82,15 @@ jobs:
     needs: test
     runs-on: ubuntu-24.04
     steps:
-      - name: Start the application (temporary)
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Verify Application Directory
+        run: ls -la 
+
+      - name: Build and Run the Application
         run: |
+          if [ ! -d "./app" ]; then echo "Error: ./app directory not found!"; exit 1; fi
           docker build -t sudoku-app:latest ./app
           docker run -d -p 7650:7650 --name sudoku-container sudoku-app:latest
           sleep 10 
@@ -100,5 +107,3 @@ jobs:
         with:
           name: zap-dast-report
           path: zap_report.html
-
-      ##
