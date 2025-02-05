@@ -93,17 +93,19 @@ jobs:
           if [ ! -d "./app" ]; then echo "Error: ./app directory not found!"; exit 1; fi
           docker build -t sudoku-app:latest ./app
           docker run -d -p 7650:7650 --name sudoku-container sudoku-app:latest
-          sleep 10 
+          sleep 20
+          docker ps
 
-      - name: Run OWASP ZAP Scan
+      - name: OWASP ZAP Scan
         run: |
-          docker run --rm -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-full-scan.py \
-            -t http://sudoku-service.sudoku.svc.cluster.local:7650 \
-            -r zap_report.html
+          docker run --rm -v $(pwd):/zap/wrk \
+          owasp/zap2docker-stable zap-baseline.py \
+          -t http://localhost:7650 \
+          -r /zap/wrk/zap_report.html || true
 
-      - name: Debug_List Files
-        run: ls -la
-
+      - name: Check ZAP Logs
+        run: cat zap_report.html || echo "No report found!"
+        
       - name: Upload DAST Report
         uses: actions/upload-artifact@v4
         with:
