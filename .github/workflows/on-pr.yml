@@ -98,13 +98,12 @@ jobs:
 
       - name: Create and Set Permissions for ZAP Directory
         run: |
-          docker exec sudoku-container mkdir -p /zap/wrk
-          docker exec sudoku-container chmod -R 777 /zap/wrk
+          mkdir -p $(pwd)/zap
+          chmod -R 777 $(pwd)/zap
 
       - name: OWASP ZAP Scan
         run: |
-          docker run --rm -v $(pwd)/zap:/zap/wrk \
-            --network zap-network \
+          docker run --rm -v $(pwd)/zap:/zap/wrk --network zap-network --user root \
             zaproxy/zap-stable zap-baseline.py \
             -t http://localhost:7650 \
             -r /zap/wrk/zap_report.html || true
