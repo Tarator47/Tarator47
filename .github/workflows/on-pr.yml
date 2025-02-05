@@ -95,22 +95,20 @@ jobs:
           docker build -t sudoku-app:latest ./app
           docker run -d --network zap-network -p 7650:7650 --name sudoku-container sudoku-app:latest
           sleep 30
-          
-      - name: Verify Application Accessibility
+
+      - name: Set Permissions for ZAP Directory
         run: |
-          docker exec sudoku-container curl -s http://localhost:7650 || echo "App is not reachable"
+          docker exec sudoku-container chmod -R 777 /zap/wrk
 
       - name: OWASP ZAP Scan
         run: |
           docker run --rm -v $(pwd):/zap/wrk \
             --network zap-network \
+            -v /zap/wrk:/zap/wrk:rw \
             zaproxy/zap-stable zap-baseline.py \
             -t http://localhost:7650 \
             -r /zap/wrk/zap_report.html || true
-
-      - name: Check ZAP Logs
-        run: cat zap_report.html || echo "No report found!"
-
+            
       - name: Upload DAST Report
         uses: actions/upload-artifact@v4
         with:
