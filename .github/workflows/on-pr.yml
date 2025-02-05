@@ -103,7 +103,8 @@ jobs:
 
       - name: OWASP ZAP Scan
         run: |
-          docker run --rm --network zap-network \
+          docker run --rm -v $(pwd)/zap:/zap/wrk \
+            --network zap-network \
             zaproxy/zap-stable zap-baseline.py \
             -t http://localhost:7650 \
             -r /zap/wrk/zap_report.html || true
@@ -112,4 +113,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-dast-report
-          path: /zap/wrk/zap_report.html
+          path: $(pwd)/zap/zap_report.html
