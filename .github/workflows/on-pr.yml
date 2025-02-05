@@ -93,7 +93,8 @@ jobs:
           if [ ! -d "./app" ]; then echo "Error: ./app directory not found!"; exit 1; fi
           docker build -t sudoku-app:latest ./app
           docker run -d -p 7650:7650 --name sudoku-container sudoku-app:latest
-          sleep 20
+          sudo chmod -R 777 $(pwd)
+          sleep 30
           docker ps
 
       - name: OWASP ZAP Scan
