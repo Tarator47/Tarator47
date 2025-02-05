@@ -88,9 +88,6 @@ jobs:
       - name: Verify Application Directory
         run: ls -la 
 
-      - name: Login to DockerHub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-        
       - name: Build and Run the Application
         run: |
           if [ ! -d "./app" ]; then echo "Error: ./app directory not found!"; exit 1; fi
@@ -107,10 +104,10 @@ jobs:
           -r /zap/wrk/zap_report.html || true
 
       - name: Check ZAP Logs
-        run: cat zap_report.html || echo "No report found!"
+        run: cat /zap/wrk/zap_report.html || echo "No report found!"
 
       - name: Upload DAST Report
         uses: actions/upload-artifact@v4
         with:
           name: zap-dast-report
-          path: zap_report.html
+          path: /zap/wrk/zap_report.html
