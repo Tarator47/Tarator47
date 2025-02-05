@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - main
+      - Preso-2
 jobs:
   lint:
     name: Lint Code
