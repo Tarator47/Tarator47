@@ -1,0 +1,366 @@
+@Library('Trator@main') _
+
+import com.tarator.build.Log
+import com.tarator.container.ContainerImages
+import com.tarator.externalSystems.GitHelper
+import com.tarator.gui.JobParameters
+import com.tarator.jobs.Agent
+import com.tarator.jobs.parameters.ParametersDevOpsContainer
+import com.tarator.security.Credentials
+import com.tarator.util.BuildVersionHelper
+
+
+def buildVersions = false
+def dockerConfig = [:]
+String fullImageName = ''
+String imageName = ''
+
+def parameters = new ParametersDevOpsContainer(this, env.JOB_BASE_NAME)
+parameters.addContainerParamsToPipelineContext()
+
+def containerImages
+def gitHelper = new GitHelper(this)
+
+pipeline {
+    agent {
+        kubernetes {
+            cloud params.get(parameters.PARAM_BASE_AGENT_LABEL)
+            yaml Agent.getKubernetesAgentYaml(docker: true, jfCli: true)
+        }
+    }
+
+    options {
+        copyArtifactPermission('/MES/*,/MES_DEV/*')
+        buildDiscarder(logRotator(daysToKeepStr: '7', artifactDaysToKeepStr: '7'))
+    }
+
+    stages {
+        stage('Job Configuration') {
+            steps {
+                script {
+                    abortIfJustUpdateJob(params.JUST_UPDATE_JOB_CONFIG)
+                    cleanWs()
+                }
+            }
+        }
+
+        stage('Validate Parameters') {
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        parameters.validate()
+                    }
+                }
+            }
+        }
+
+        stage('Clone') {
+            when {
+                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED'}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    cleanWs()
+                    script {
+                        gitHelper.cloneProject(params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_REPOSITORY_URL), params.get(parameters.PARAM_BUILD_BASE_BRANCH), JobParameters.OS_LINUX)
+                    }
+                }
+            }
+        }
+
+        stage('Build Configuration') {
+            when {
+                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED'}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        containerImages = new ContainerImages(context: this, registryRepository: params.get(parameters.PARAM_BUILD_BASE_BUILD_TYPE).equals('release') ? ContainerImages.RELEASE_REGISTRY_REPOSITORY : ContainerImages.DEFAULT_REGISTRY_REPOSITORY)
+                        containerImages.initDocker()
+                        containerImages.artifactoryHelper.addConfig()
+
+                        dockerConfig = containerImages.dockerConfig(containerFile: params.get(parameters.PARAM_CONTAINERFILE_LOCATION))
+                        println Log.verboseMap('Docker Configuration', dockerConfig)
+
+                        buildVersions = BuildVersionHelper.calculateVersions(
+                            (BuildVersionHelper.CALC_VERSIONS_ARGS.buildVersion.toString()): dockerConfig.get(ContainerImages.DockerConfig.image_version.toString()),
+                            (BuildVersionHelper.CALC_VERSIONS_ARGS.devQualifier.toString()): params.get(parameters.PARAM_BUILD_BASE_DEV_VERSION_QUALIFIER),
+                            (BuildVersionHelper.CALC_VERSIONS_ARGS.debugQualifier.toString()): params.get(parameters.PARAM_BUILD_BASE_DEBUG_FLAG),
+                            (BuildVersionHelper.CALC_VERSIONS_ARGS.releaseBuild.toString()): params.get(parameters.PARAM_BUILD_BASE_BUILD_TYPE).equals('release')
+                        )
+                        imageName = "${dockerConfig.get(ContainerImages.DockerConfig.image_name.toString())}"
+                        println Log.verbose('Image name', imageName)
+                        if (buildVersions) {
+                            println Log.verboseMap('Build versions', buildVersions)
+                            if (params.get(parameters.PARAM_BUILD_BASE_BUILD_TYPE).equals('release')) {
+                                fullImageName = "${dockerConfig.get(ContainerImages.DockerConfig.image_name.toString())}:${buildVersions.get(BuildVersionHelper.BuildVersions.releaseVersion.toString())}"
+                            } else {
+                                fullImageName = "${dockerConfig.get(ContainerImages.DockerConfig.image_name.toString())}:${buildVersions.get(BuildVersionHelper.BuildVersions.developmentVersion.toString())}"
+                            }
+                        } else {
+                            fullImageName = "${dockerConfig.get(ContainerImages.DockerConfig.image_name.toString())}:${dockerConfig.get(ContainerImages.DockerConfig.image_version.toString())}"
+                        }
+                        println Log.verbose('Full Image name', fullImageName)
+                    }
+                }
+            }
+        }
+
+        stage('Update version before build') {
+            when {
+                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED' && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_JUST_LINT_DOCKERFILE) == false && buildVersions}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        String buildVersion = buildVersions.get(BuildVersionHelper.BuildVersions.developmentVersion.toString())
+                        if (params.get(parameters.PARAM_BUILD_BASE_BUILD_TYPE).equals('release')) {
+                            buildVersion = buildVersions.get(BuildVersionHelper.BuildVersions.releaseVersion.toString())
+                        }
+                        println "Changing version to release: ${buildVersion}"
+                        containerImages.updateVersion(
+                            containerFile: params.get(parameters.PARAM_CONTAINERFILE_LOCATION),
+                            newImageVersion: buildVersion,
+                            releaseJiraId: params.get(parameters.PARAM_BUILD_BASE_RELEASE_JIRA_ID),
+                            repoUrl: params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_REPOSITORY_URL),
+                            repoBranch: params.get(parameters.PARAM_BUILD_BASE_BRANCH)
+                        )
+
+                        // commit changes for release builds
+                        if (params.get(parameters.PARAM_BUILD_BASE_BUILD_TYPE).equals('release')) {
+                            gitHelper.addChanges()
+                                     .commitChanges("${params.get(parameters.PARAM_BUILD_BASE_RELEASE_JIRA_ID)} [Jenkins Release build] update DockerConfig.json")
+                        }
+
+                        // refresh dockerConfig
+                        dockerConfig = containerImages.dockerConfig(containerFile: params.get(parameters.PARAM_CONTAINERFILE_LOCATION))
+                        println Log.verboseMap('Docker Configuration', dockerConfig)
+                    }
+                }
+            }
+        }
+
+        stage('Check SNAPSHOT dependencies') {
+            when {
+                expression { currentBuild.result != 'FAILURE' && params.get(parameters.PARAM_BUILD_BASE_BUILD_TYPE).equals('release') }
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        println Log.verbose('checkForSnapshotDependencies', """
+                            containerFile: ${params.get(parameters.PARAM_CONTAINERFILE_LOCATION)}
+                        """)
+
+                        containerImages.checkForSnapshotDependencies(containerFile: params.get(parameters.PARAM_CONTAINERFILE_LOCATION))
+                    }
+                }
+            }
+        }
+
+        stage('Lint') {
+            when {
+                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED'}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        println Log.verbose("Lint", """
+                            containerFile: ${params.get(parameters.PARAM_CONTAINERFILE_LOCATION)}
+                        """)
+
+                        containerImages.lint(
+                            containerFile: params.get(parameters.PARAM_CONTAINERFILE_LOCATION)
+                        )
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            when {
+                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED' && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_JUST_LINT_DOCKERFILE) == false}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        imageId = containerImages.build(
+                            containerFile: params.get(parameters.PARAM_CONTAINERFILE_LOCATION),
+                            buildArgs: params.get(parameters.PARAM_CONTAINERFILE_BUILD_ARGS),
+                            buildContext: dockerConfig.get(ContainerImages.DockerConfig.build_context.toString()),
+                            imageVersion: dockerConfig.get(ContainerImages.DockerConfig.image_version.toString()),
+                            scriptParams: params.get(parameters.PARAM_BUILD_CONTEXT_DOWNLOAD_SCRIPT_PARAMETERS),
+                            quiet: !params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_DOCKER_BUILD_VERBOSE)
+                        ).trim()
+
+                        println Log.verbose("Build", """
+                            Docker image build: ${imageId}
+                        """)
+                    }
+                }
+            }
+        }
+
+        stage('Tag') {
+            when {
+                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED' && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_JUST_LINT_DOCKERFILE) == false}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        println Log.verbose("Tag", """
+                            imageId: ${imageId}
+                            imageTag: ${fullImageName}
+                        """)
+
+                        containerImages.tag(
+                            imageId: imageId,
+                            imageTag: "${fullImageName}"
+                        )
+                    }
+                }
+            }
+        }
+
+        stage('Label') {
+            when {
+                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED' && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_JUST_LINT_DOCKERFILE) == false}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        println Log.verbose("label", """
+                            imageId: ${imageId}
+                            imageLabels: ${dockerConfig.get(ContainerImages.DockerConfig.labels.toString())}
+                        """)
+
+                        containerImages.label(
+                            imageTag: "${fullImageName}",
+                            imageLabels: dockerConfig.get(ContainerImages.DockerConfig.labels.toString()),
+                            imageVersion: dockerConfig.get(ContainerImages.DockerConfig.image_version.toString())
+                        )
+                    }
+                }
+            }
+        }
+
+        stage('Scan') {
+            when {
+                expression { currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED' && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_JUST_LINT_DOCKERFILE) == false}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        println Log.verbose("Scan", """
+                            imageTag: ${fullImageName}
+                        """)
+
+                        containerImages.scan(imageTag: "${fullImageName}", project: params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_PROJECT))
+                    }
+                }
+            }
+        }
+
+        stage('Push') {
+            when {
+                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED' && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_JUST_LINT_DOCKERFILE) == false && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_PUSH_DOCKER_IMAGE) == true}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        println Log.verbose("Push", """
+                            imageTag: ${fullImageName}
+                        """)
+
+                        containerImages.push(
+                            imageTag: "${fullImageName}"
+                        )
+                    }
+                }
+            }
+        }
+
+        stage('Update to next dev version') {
+            when {
+                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED' && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_JUST_LINT_DOCKERFILE) == false && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_PUSH_DOCKER_IMAGE) == true && params.get(parameters.PARAM_BUILD_BASE_BUILD_TYPE).equals('release') && buildVersions}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        repoUrl = params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_REPOSITORY_URL)
+                        repoBranch = params.get(parameters.PARAM_BUILD_BASE_BRANCH)
+
+                        // push changes before tagging
+                        gitHelper.pushChanges(repoUrl, repoBranch)
+
+                        // tag the repository
+                        releaseVersion = buildVersions.get(BuildVersionHelper.BuildVersions.releaseVersion.toString())
+                        releaseJiraId = params.get(parameters.PARAM_BUILD_BASE_RELEASE_JIRA_ID)
+                        gitHelper.tagProject("${imageName}-containerimage/${releaseVersion}", "${releaseJiraId} [Jenkins Release build] tagging ${imageName}/${releaseVersion}", repoUrl)
+
+                        // update version to next dev version
+                        println "Changing version to next development version: ${buildVersions.get(BuildVersionHelper.BuildVersions.nextDevelopmentVersion.toString())}"
+                        containerImages.updateVersion(
+                            containerFile: params.get(parameters.PARAM_CONTAINERFILE_LOCATION),
+                            newImageVersion: buildVersions.get(BuildVersionHelper.BuildVersions.nextDevelopmentVersion.toString()),
+                            releaseJiraId: params.get(parameters.PARAM_BUILD_BASE_RELEASE_JIRA_ID),
+                            repoUrl: repoUrl,
+                            repoBranch: repoBranch
+                        )
+
+                        // commit and push next dev version update
+                        gitHelper.addChanges()
+                                 .commitChanges("${releaseJiraId} [Jenkins Release build] prepare for next development cycle")
+                                 .pushChanges(repoUrl, repoBranch)
+                    }
+                }
+            }
+        }
+
+        stage('Sign') {
+            when {
+                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED' && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_JUST_LINT_DOCKERFILE) == false && params.get(parameters.PARAM_CONTAINER_ASSEMBLIES_PUSH_DOCKER_IMAGE) == true}
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    script {
+                        println Log.verbose("Sign", """
+                            imageTag: ${fullImageName}
+                        """)
+
+                        containerImages.sign(
+                            imageTag: "${fullImageName}"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'build SUCCESS'
+            script {
+                currentBuild.description = "${fullImageName}"
+            }
+            notifyResults('success')
+        }
+        failure {
+            echo 'build FAILURE.'
+            notifyResults('failure')
+        }
+        unstable {
+            echo 'build UNSTABLE'
+            script {
+                currentBuild.description = "${fullImageName}"
+            }
+            notifyResults('unstable')
+        }
+        changed {
+            echo 'build status changed.'
+        }
+        aborted {
+            echo 'build ABORTED.'
+            notifyResults('aborted')
+        }
+    }
+}

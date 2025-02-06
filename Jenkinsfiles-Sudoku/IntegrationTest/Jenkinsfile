@@ -1,12 +1,9 @@
-@Library('Trator@main')
+@Library('Tarator@main') _
 
 import com.tarator.jobs.JobParameters
 import com.tarator.jobs.triggers.TriggersBase
 import com.tarator.jobs.Agent
 import com.tarator.jobs.parameters.ParametersBuildBase
-
-def triggers = new TriggersBase(this, env.JOB_BASE_NAME)
-triggers.addCronTrigger('H 0 * * *')
 
 def parameters = new ParametersBuildBase(this, env.JOB_BASE_NAME)
 parameters.addGeneralBuildParams()
@@ -48,14 +45,14 @@ pipeline {
             }
         }
 
-        stage('Run Unit Tests') {
-            when { expression { return params.RUN_UNIT_TESTS } }
+        stage('Run Integration Tests') {
+            when { expression { return params.RUN_INTEGRATION_TESTS } }
             steps {
-                sh '. venv/bin/activate && pytest app/test_app.py --junitxml=results.xml'
+                sh '. venv/bin/activate && pytest app/integration_tests/ --junitxml=integration_results.xml'
             }
             post {
                 always {
-                    junit 'results.xml'
+                    junit 'integration_results.xml'
                 }
             }
         }
@@ -63,7 +60,7 @@ pipeline {
         stage('Code Coverage') {
             when { expression { return params.PUBLISH_COVERAGE } }
             steps {
-                sh '. venv/bin/activate && coverage run -m pytest app/test_app.py'
+                sh '. venv/bin/activate && coverage run -m pytest app/integration_tests/'
                 sh '. venv/bin/activate && coverage report'
                 sh '. venv/bin/activate && coverage xml'
             }
@@ -78,19 +75,6 @@ pipeline {
             when { expression { return params.ENABLE_LINTING } }
             steps {
                 sh '. venv/bin/activate && flake8 app/'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh "docker build -t sudoku:${params.DOCKER_IMAGE_TAG} ."
-            }
-        }
-
-        stage('Deploy to Environment') {
-            when { expression { return params.DEPLOY_ENVIRONMENT != 'none' } }
-            steps {
-                sh 'echo Deploying to ${params.DEPLOY_ENVIRONMENT} environment...'
             }
         }
     }
