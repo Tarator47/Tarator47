@@ -18,9 +18,9 @@ jobs:
         run: kubectl version --client || exit 1
         shell: pwsh
 
-      - name: Check Helm
-        run: helm version || exit 1
-        shell: pwsh
+      # - name: Check Helm
+      #   run: helm version || exit 1
+      #   shell: pwsh
 
       - name: Start Minikube
         run: minikube start --cpus 4 --memory 6144
@@ -30,17 +30,20 @@ jobs:
         run: minikube addons enable ingress
         shell: pwsh
 
-      - name: Add Helm Repositories
-        run: |
-          helm repo add jenkins https://charts.jenkins.io
-          helm repo add grafana https://grafana.github.io/helm-charts
-          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-          helm repo update
+      - name: TEST
+        run: winget install Helm.Helm
         shell: pwsh
+      # - name: Add Helm Repositories
+      #   run: |
+      #     helm repo add jenkins https://charts.jenkins.io
+      #     helm repo add grafana https://grafana.github.io/helm-charts
+      #     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+      #     helm repo update
+      #   shell: pwsh
 
-      - name: Install Jenkins Helm Chart
-        run: helm install jenkins jenkins/jenkins -f ./helm/values/jenkins/values.yaml
-        shell: pwsh
+      # - name: Install Jenkins Helm Chart
+      #   run: helm install jenkins jenkins/jenkins -f ./helm/values/jenkins/values.yaml
+      #   shell: pwsh
 
       # The following steps are commented out, uncomment them if you wish to use them
       # - name: Install Grafana Helm Chart
