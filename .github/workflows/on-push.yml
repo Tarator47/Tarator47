@@ -1,120 +1,120 @@
-name: CI/CD Pipeline
+# name: CI/CD Pipeline
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  deploy:
-    name: Build And Deploy Project
-    runs-on: ubuntu-24.04
-    outputs:
-      version_tag: ${{ steps.set_version_tag.outputs.tag }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+# jobs:
+#   deploy:
+#     name: Build And Deploy Project
+#     runs-on: ubuntu-24.04
+#     outputs:
+#       version_tag: ${{ steps.set_version_tag.outputs.tag }}
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
 
-      - name: Set up Version Tag
-        id: set_version_tag
-        run: |
-          YEAR=$(date +"%Y")
-          MONTH=$(date +"%m")
-          QUARTER=$(( (MONTH-1) / 3 + 1 ))
-          VERSION_TAG="${YEAR}-Q${QUARTER}"
-          echo "::set-output name=tag::$VERSION_TAG"
-          echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
+#       - name: Set up Version Tag
+#         id: set_version_tag
+#         run: |
+#           YEAR=$(date +"%Y")
+#           MONTH=$(date +"%m")
+#           QUARTER=$(( (MONTH-1) / 3 + 1 ))
+#           VERSION_TAG="${YEAR}-Q${QUARTER}"
+#           echo "::set-output name=tag::$VERSION_TAG"
+#           echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
 
-      - name: Build Docker Image
-        run: |
-          docker build -t ghcr.io/tarator47/sudoku:${{ env.VERSION_TAG }} ./app
+#       - name: Build Docker Image
+#         run: |
+#           docker build -t ghcr.io/tarator47/sudoku:${{ env.VERSION_TAG }} ./app
 
-      - name: Log in to GitHub Container Registry
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+#       - name: Log in to GitHub Container Registry
+#         run: |
+#           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
-      - name: Push Docker Image
-        run: |
-          docker push ghcr.io/tarator47/sudoku:${{ env.VERSION_TAG }}
+#       - name: Push Docker Image
+#         run: |
+#           docker push ghcr.io/tarator47/sudoku:${{ env.VERSION_TAG }}
 
-      - name: Tag Docker Image with latest tag
-        run: |
-          docker tag ghcr.io/tarator47/sudoku:${{ env.VERSION_TAG }} ghcr.io/tarator47/sudoku:latest
+#       - name: Tag Docker Image with latest tag
+#         run: |
+#           docker tag ghcr.io/tarator47/sudoku:${{ env.VERSION_TAG }} ghcr.io/tarator47/sudoku:latest
     
-      - name: Push Docker Image with latest tag
-        run: |
-          docker push ghcr.io/tarator47/sudoku:latest
+#       - name: Push Docker Image with latest tag
+#         run: |
+#           docker push ghcr.io/tarator47/sudoku:latest
 
-  setup-environment:
-    needs: deploy
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+#   setup-environment:
+#     needs: deploy
+#     runs-on: ubuntu-24.04
+#     steps:
+#       - name: Checkout Repository
+#         uses: actions/checkout@v2
 
-      - name: Install Minikube
-        run: |
-          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-          sudo install minikube-linux-amd64 /usr/local/bin/minikube
+#       - name: Install Minikube
+#         run: |
+#           curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+#           sudo install minikube-linux-amd64 /usr/local/bin/minikube
 
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+#       - name: Install kubectl
+#         run: |
+#           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+#           sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-      - name: Install Docker
-        run: |
-          sudo apt update
-          sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-          sudo apt update
-          sudo apt install -y docker-ce docker-ce-cli containerd.io
+#       - name: Install Docker
+#         run: |
+#           sudo apt update
+#           sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+#           curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+#           sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+#           sudo apt update
+#           sudo apt install -y docker-ce docker-ce-cli containerd.io
 
-      - name: Start Minikube
-        run: |
-          minikube start --driver=docker
+#       - name: Start Minikube
+#         run: |
+#           minikube start --driver=docker
 
-      - name: Create Namespace
-        run: |
-          kubectl create namespace sudoku
+#       - name: Create Namespace
+#         run: |
+#           kubectl create namespace sudoku
 
-      - name: Create Secret
-        run: |
-          kubectl create secret docker-registry -n sudoku regcred --docker-username ${{ secrets.DOCKER_USERNAME }} --docker-password ${{ secrets.DOCKER_PASSWORD }} --docker-server gcr.io
+#       - name: Create Secret
+#         run: |
+#           kubectl create secret docker-registry -n sudoku regcred --docker-username ${{ secrets.DOCKER_USERNAME }} --docker-password ${{ secrets.DOCKER_PASSWORD }} --docker-server gcr.io
 
-      - name: Replace Image Tag in Deployment File
-        run: |
-          sed -i "s/IMAGE_TAG_PLACEHOLDER/${{ needs.deploy.outputs.version_tag }}/g" ./kubernetes/deployment.yaml
+#       - name: Replace Image Tag in Deployment File
+#         run: |
+#           sed -i "s/IMAGE_TAG_PLACEHOLDER/${{ needs.deploy.outputs.version_tag }}/g" ./kubernetes/deployment.yaml
 
-      - name: Apply Deployment
-        run: |
-          kubectl apply -f ./kubernetes/deployment.yaml --namespace=sudoku
+#       - name: Apply Deployment
+#         run: |
+#           kubectl apply -f ./kubernetes/deployment.yaml --namespace=sudoku
 
-      - name: Wait for Deployment
-        run: |
-          kubectl rollout status deployment/sudoku-deployment -n sudoku --timeout=180s
+#       - name: Wait for Deployment
+#         run: |
+#           kubectl rollout status deployment/sudoku-deployment -n sudoku --timeout=180s
 
-      - name: Create test namespace
-        run: |
-          kubectl create namespace test-namespace
+#       - name: Create test namespace
+#         run: |
+#           kubectl create namespace test-namespace
 
-      - name: Create service ServiceAccount
-        run: |
-          kubectl apply -f ./kubernetes/role.yaml
+#       - name: Create service ServiceAccount
+#         run: |
+#           kubectl apply -f ./kubernetes/role.yaml
 
-      - name: Run a test pod to check result of home page
-        run: |
-          kubectl run temp-pod --image=ubuntu --namespace=test-namespace --restart=Never -- sh -c "apt update && apt install -y curl && curl http://sudoku-service.sudoku.svc.cluster.local:7650"
+#       - name: Run a test pod to check result of home page
+#         run: |
+#           kubectl run temp-pod --image=ubuntu --namespace=test-namespace --restart=Never -- sh -c "apt update && apt install -y curl && curl http://sudoku-service.sudoku.svc.cluster.local:7650"
 
-      - name: Wait for pod to complete
-        run: |
-          kubectl wait --for=jsonpath="status.containerStatuses[0].state.terminated.reason"=Completed --timeout=120s pod/temp-pod -n test-namespace
+#       - name: Wait for pod to complete
+#         run: |
+#           kubectl wait --for=jsonpath="status.containerStatuses[0].state.terminated.reason"=Completed --timeout=120s pod/temp-pod -n test-namespace
 
-      - name: Retrieve logs from the pod
-        run: |
-          kubectl logs temp-pod -n test-namespace
+#       - name: Retrieve logs from the pod
+#         run: |
+#           kubectl logs temp-pod -n test-namespace
 
-      - name: Delete temporary pod
-        run: |
-          kubectl delete pod temp-pod -n test-namespace
+#       - name: Delete temporary pod
+#         run: |
+#           kubectl delete pod temp-pod -n test-namespace
