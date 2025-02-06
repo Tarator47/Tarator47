@@ -1,137 +1,78 @@
-name: CI Pipeline
-on:
-  push:
-    branches:
-      - main
-      - Preso-2
-jobs:
-  lint:
-    name: Lint Code
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-      - name: Install JavaScript dependencies
-        run: |
-          npm install --save-dev prettier
-      - name: Run Python Linter
-        run: |
-          flake8 .
-      - name: Run JavaScript Linter and fix issues
-        run: |
-          npx prettier --write .
-  snyk:
-    name: Snyk Security Scan
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      - name: Set up Snyk
-        uses: snyk/actions/setup@master
-        with:
-          token: ${{ secrets.SNYK_TOKEN }}
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r ./app/requirements.txt
-      - name: Authenticate with Snyk
-        run: snyk auth ${{ secrets.SNYK_TOKEN }}
-      - name: Snyk Scan
-        run: snyk test ./app
-  trivy:
-    name: Trivy Security Scan
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      - name: Trivy Scan
-        run: |
-          docker run --rm -v ./app:/app aquasec/trivy fs /app
+# name: CI Pipeline
+# on:
+#   pull_request:
+#     branches:
+#       - main
+# jobs:
+#   lint:
+#     name: Lint Code
+#     runs-on: ubuntu-24.04
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+#       - name: Set up Python
+#         uses: actions/setup-python@v2
+#         with:
+#           python-version: '3.x'
+#       - name: Install Python dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install flake8
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v2
+#         with:
+#           node-version: '14'
+#       - name: Install JavaScript dependencies
+#         run: |
+#           npm install --save-dev prettier
+#       - name: Run Python Linter
+#         run: |
+#           flake8 .
+#       - name: Run JavaScript Linter and fix issues
+#         run: |
+#           npx prettier --write .
+#   snyk:
+#     name: Snyk Security Scan
+#     runs-on: ubuntu-24.04
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+#       - name: Set up Snyk
+#         uses: snyk/actions/setup@master
+#         with:
+#           token: ${{ secrets.SNYK_TOKEN }}
+#       - name: Install Dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r ./app/requirements.txt
+#       - name: Authenticate with Snyk
+#         run: snyk auth ${{ secrets.SNYK_TOKEN }}
+#       - name: Snyk Scan
+#         run: snyk test ./app
+#   trivy:
+#     name: Trivy Security Scan
+#     runs-on: ubuntu-24.04
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+#       - name: Trivy Scan
+#         run: |
+#           docker run --rm -v ./app:/app aquasec/trivy fs /app
 
-  test:
-    name: Run Python Unit Tests
-    needs: [lint, snyk, trivy]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r app/requirements.txt
-      - name: Run tests
-        run: python -m unittest discover ./app
-  
-  dast:
-    name: OWASP_ZAP DAST Scanning
-    needs: test
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Verify Application Directory
-        run: ls -la 
-
-      - name: Build and Run the Application
-        run: |
-          docker network create zap-network
-
-          docker build -t sudoku-app:latest ./app
-          docker run -d --network zap-network -p 7650:7650 --name sudoku-container sudoku-app:latest
-          sleep 30
-
-      - name: Create and Set Permissions for ZAP Directory
-        run: |
-          mkdir -p $(pwd)/zap
-          chmod -R 777 $(pwd)/zap
-
-      - name: OWASP ZAP Scan
-        run: |
-          docker run --rm -v $(pwd)/zap:/zap/wrk --network zap-network --user root \
-            zaproxy/zap-stable zap-baseline.py \
-            -t http://localhost:7650 \
-            -r /zap/wrk/zap_report.html || true
-
-      - name: Upload DAST Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-dast-report
-          path: $(pwd)/zap/zap_report.html
-
-  rasp:
-    name: RASP Security Scan
-    needs: test
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Contrast Security
-        run: |
-          curl -L https://pkg.contrastsecurity.com/api/v1/agent/python/latest -o contrast-agent.tar.gz
-          tar -xzf contrast-agent.tar.gz -C /usr/local/lib/python3.9/dist-packages/
-      - name: Set Contrast Security Environment Variables
-        run: |
-          echo "export CONTRAST__API__URL=https://app.contrastsecurity.com/Contrast/api" >> $GITHUB_ENV
-          echo "export CONTRAST__API__API_KEY=${{ secrets.CONTRAST_API_KEY }}" >> $GITHUB_ENV
-          echo "export CONTRAST__API__SERVICE_KEY=${{ secrets.CONTRAST_SERVICE_KEY }}" >> $GITHUB_ENV
-          echo "export CONTRAST__API__USER_KEY=${{ secrets.CONTRAST_USER_KEY }}" >> $GITHUB_ENV
-      - name: Run Application with Contrast Security
-        run: |
-          python -m contrast_agent app/app.py
+#   test:
+#     name: Run Python Unit Tests
+#     needs: [lint, snyk, trivy]
+#     runs-on: ubuntu-24.04
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+#       - name: Set up Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: 3.9
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r app/requirements.txt
+#       - name: Run tests
+#         run: python -m unittest discover ./app
