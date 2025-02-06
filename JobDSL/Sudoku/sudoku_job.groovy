@@ -6,7 +6,7 @@ String pipelineBranchMain = branchMain
 def daysKeep = 30
 def artifactDaysKeep = 7
 
-categorizedJobsView(PipelineNames.jobFolderCPG + '/11 latest') {
+categorizedJobsView(PipelineNames.jobFolderSudoku + '/11 latest') {
     jobs {
         regex("${PipelineNames.devPrefix}${PipelineNames.devPrefix != "" ? "-" : ""}.*")
     }
@@ -39,7 +39,6 @@ categorizedJobsView(PipelineNames.jobFolderCPG + '/11 latest') {
                     git {
                         remote {
                             url(config.url)
-                            credentials() // TRQBWA CRED
                         }
                         branch(config.branch)
                     }

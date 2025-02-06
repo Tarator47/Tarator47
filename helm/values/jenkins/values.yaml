@@ -147,7 +147,7 @@ controller:
   additionalExistingSecrets: []
   additionalSecrets: []
   secretClaims: []
-  cloudName: "kubernetes"
+  cloudName: "tarator.custom.domain.com"
   JCasC:
     defaultConfig: true
     overwriteConfiguration: false

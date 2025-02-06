@@ -1,20 +1,15 @@
-@Library('MES@Story/MESSYSTEM-4598/MESSYSTEM-4794')
+@Library('Tarator@main') _
 import jenkins.model.Jenkins
 import com.tarator.gui.PipelineNames
 import com.tarator.jobs.Agent
 import com.tarator.gui.JobParameters
-import com.tarator.jobs.Tools
-import com.tarator.jobs.triggers.TriggersBase
 
-def Tools = new Tools(this)
 
-def triggers = new TriggersBase(this, env.JOB_BASE_NAME)
-triggers.addCronTrigger('H 3 * * 7')
 
 pipeline {
     agent {
         kubernetes {
-            cloud Agent.K8S_MDH
+            cloud Agent.K8S_TARATOR
             yaml Agent.getKubernetesAgentYaml()
         }
     }
@@ -26,31 +21,15 @@ pipeline {
     }
 
     stages {
-
-        stage('Job Configuration') {
-            steps {
-                abortIfJustUpdateJob(params.JUST_UPDATE_JOB_CONFIG)
-            }
-        }
-
         stage('Build Projects') {
+            when {
+                expression { params.JUST_UPDATE_JOB_CONFIG != true && currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED' }
+            }
             steps {
                 script {
-                    filePath = sh(script: "pwd", returnStdout: true).trim() + "/src/com/tarator/gui/PipelineNames.groovy"
-                    String devPrefix = sh(script: "grep 'static final String devPrefix' ${filePath} | awk -F'\"' '{print \$2}'", returnStdout: true).trim()
-                    println devPrefix
-                    if (devPrefix) {
-                        error("'devPrefix' inside 'src/com/tarator/gui/PipelineNames.groovy' MUST BE EMPTY!")
-                    }
-                    withMaven(jdk: Tools.getJDK(JobParameters.OS_LINUX, 11), maven: 'maven-3.6.3', globalMavenSettingsConfig: Tools.MAVEN_GLOBAL_SETTINGS, options: Tools.getJenkinsPluginWithMavenOptions()) {
-                        sh script: '''mvn org.apache.maven.plugins:maven-dependency-plugin:copy -Dartifact=org.jenkins-ci.plugins:git:3.6.0 -DoutputDirectory=./libs
-                            mvn org.apache.maven.plugins:maven-dependency-plugin:copy -Dartifact=org.jenkins-ci.plugins:mailer:1.34.2 -DoutputDirectory=./libs
-                            mvn org.apache.maven.plugins:maven-dependency-plugin:copy -Dartifact=org.jvnet.hudson.main:hudson-core:2.2.1 -DoutputDirectory=./libs
-                        ''', returnStdout: true
-                    }
                     if (params.BUILD_SUDOKU || params.BUILD_GAMES) {
-                        jobDsl targets: 'JobDSL/Sudoku/sudoku_folder_job.groovy', additionalClasspath: ['libs/*.jar', 'src/'].join('\n')
-                        jobDsl targets: 'JobDSL/Sudoku/sudoku_job.groovy', additionalClasspath: ['libs/*.jar', 'src/'].join('\n')
+                        jobDsl targets: 'JobDSL/Sudoku/sudoku_folder_job.groovy', additionalClasspath: 'src/'
+                        jobDsl targets: 'JobDSL/Sudoku/sudoku_job.groovy', additionalClasspath: 'src/'
                     }
                 }
             }

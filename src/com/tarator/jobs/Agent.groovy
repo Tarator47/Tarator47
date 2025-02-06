@@ -10,7 +10,7 @@ class Agent {
         return [K8S_TARATOR]
     }
 
-    static String getKubernetesAgentYaml(Map args) {
+    static String getKubernetesAgentYaml(Map args = [:]) {
         Boolean helmKubectl = args.getOrDefault('helmKubectl', false)
         Boolean docker = args.getOrDefault('docker', false)
 

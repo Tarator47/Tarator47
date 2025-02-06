@@ -4,6 +4,6 @@ folder(PipelineNames.rootFolder) {}
 
 folder(PipelineNames.folderSudoku) {}
 
-folder(PipelineNames.jobFolderCPG) {
+folder(PipelineNames.jobFolderSudoku) {
     primaryView('latest')
 }
