@@ -9,7 +9,7 @@ import com.tarator.gui.JobParameters
 pipeline {
     agent {
         kubernetes {
-            cloud Agent.K8S_MDH
+            cloud Agent.tarator.custom.domain.com
             yaml Agent.getKubernetesAgentYaml()
         }
     }
