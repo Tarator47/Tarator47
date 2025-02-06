@@ -1,4 +1,4 @@
-@Library('MES@Story/MESSYSTEM-4598/MESSYSTEM-4794')
+@Library('Tarator@main') _
 import jenkins.model.Jenkins
 import com.tarator.gui.PipelineNames
 import com.tarator.jobs.Agent
