@@ -21,14 +21,10 @@ pipeline {
     }
 
     stages {
-
-        stage('Job Configuration') {
-            steps {
-                abortIfJustUpdateJob(params.JUST_UPDATE_JOB_CONFIG)
-            }
-        }
-
         stage('Build Projects') {
+            when {
+                expression { params.JUST_UPDATE_JOB_CONFIG != true && currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED' }
+            }
             steps {
                 script {
                     filePath = sh(script: "pwd", returnStdout: true).trim() + "/src/com/tarator/gui/PipelineNames.groovy"

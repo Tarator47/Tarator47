@@ -35,15 +35,6 @@ pipeline {
     }
 
     stages {
-        stage('Job Configuration') {
-            steps {
-                script {
-                    abortIfJustUpdateJob(params.JUST_UPDATE_JOB_CONFIG)
-                    cleanWs()
-                }
-            }
-        }
-
         stage('Validate Parameters') {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
@@ -56,7 +47,7 @@ pipeline {
 
         stage('Clone') {
             when {
-                expression {currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED'}
+                expression { params.get(parameters.)currentBuild.result != 'FAILURE' && currentBuild.result != 'ABORTED'}
             }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
