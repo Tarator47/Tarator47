@@ -28,8 +28,8 @@ pipeline {
             steps {
                 script {
                     if (params.BUILD_SUDOKU || params.BUILD_GAMES) {
-                        jobDsl targets: 'JobDSL/Sudoku/sudoku_folder_job.groovy', additionalClasspath: 'src'
-                        jobDsl targets: 'JobDSL/Sudoku/sudoku_job.groovy', additionalClasspath: 'src'
+                        jobDsl targets: 'JobDSL/Sudoku/sudoku_folder_job.groovy', additionalClasspath: 'src/'
+                        jobDsl targets: 'JobDSL/Sudoku/sudoku_job.groovy', additionalClasspath: 'src/'
                     }
                 }
             }
