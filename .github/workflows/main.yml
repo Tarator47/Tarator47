@@ -19,7 +19,7 @@ jobs:
         shell: pwsh
 
       - name: Check Helm
-        run: helm version || exit 1
+        run: C:\Users\atisw\scoop\shims\helm.exe version || exit 1
         shell: pwsh
 
       - name: Start Minikube
