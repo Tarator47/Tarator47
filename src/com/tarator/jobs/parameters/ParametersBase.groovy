@@ -3,7 +3,6 @@ package com.tarator.jobs.parameters
 import com.tarator.gui.JobParameters
 import com.tarator.gui.PipelineNames
 import com.tarator.jobs.Agent
-import com.tarator.jobs.triggers.TriggersBase
 
 
 import hudson.model.*
@@ -47,17 +46,7 @@ class ParametersBase {
     }
 
     public void addParamsToPipelineContext() {
-        def triggs = TriggersBase.getTriggers(context.env.JOB_NAME)
-        if (triggs) {
-            context.properties(
-                [
-                    context.parameters(params),
-                    context.pipelineTriggers(triggs)
-                ]
-            )
-        } else {
-            context.properties([context.parameters(params)])
-        }
+        context.properties([context.parameters(params)])
     }
 
     def getParameters() {

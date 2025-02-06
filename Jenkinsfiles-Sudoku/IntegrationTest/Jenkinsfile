@@ -1,7 +1,6 @@
 @Library('Tarator@main') _
 
 import com.tarator.jobs.JobParameters
-import com.tarator.jobs.triggers.TriggersBase
 import com.tarator.jobs.Agent
 import com.tarator.jobs.parameters.ParametersBuildBase
 

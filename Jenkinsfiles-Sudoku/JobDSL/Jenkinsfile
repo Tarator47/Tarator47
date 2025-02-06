@@ -4,12 +4,9 @@ import com.tarator.gui.PipelineNames
 import com.tarator.jobs.Agent
 import com.tarator.gui.JobParameters
 import com.tarator.jobs.Tools
-import com.tarator.jobs.triggers.TriggersBase
 
 def Tools = new Tools(this)
 
-def triggers = new TriggersBase(this, env.JOB_BASE_NAME)
-triggers.addCronTrigger('H 3 * * 7')
 
 pipeline {
     agent {
