@@ -12,18 +12,23 @@ jobs:
 
       - name: Check Minikube
         run: minikube version || exit 1
+        shell: pwsh
 
       - name: Check kubectl
         run: kubectl version --client || exit 1
+        shell: pwsh
 
       - name: Check Helm
         run: helm version || exit 1
+        shell: pwsh
 
       - name: Start Minikube
         run: minikube start --cpus 4 --memory 6144
+        shell: pwsh
 
       - name: Enable Minikube Ingress
         run: minikube addons enable ingress
+        shell: pwsh
 
       - name: Add Helm Repositories
         run: |
@@ -31,13 +36,17 @@ jobs:
           helm repo add grafana https://grafana.github.io/helm-charts
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo update
+        shell: pwsh
 
       - name: Install Jenkins Helm Chart
         run: helm install jenkins jenkins/jenkins -f ./helm/values/jenkins/values.yaml
+        shell: pwsh
 
       # The following steps are commented out, uncomment them if you wish to use them
       # - name: Install Grafana Helm Chart
       #   run: helm install grafana grafana/grafana -f ./helm/values/grafana/values.yaml
+      #   shell: pwsh
 
       # - name: Install Prometheus Helm Chart
       #   run: helm install prometheus prometheus-community/prometheus -f ./helm/values/prometheus/values.yaml
+      #   shell: pwsh
