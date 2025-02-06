@@ -27,15 +27,9 @@ pipeline {
             }
             steps {
                 script {
-                    filePath = sh(script: "pwd", returnStdout: true).trim() + "/src/com/tarator/gui/PipelineNames.groovy"
-                    String devPrefix = sh(script: "grep 'static final String devPrefix' ${filePath} | awk -F'\"' '{print \$2}'", returnStdout: true).trim()
-                    println devPrefix
-                    if (devPrefix) {
-                        error("'devPrefix' inside 'src/com/tarator/gui/PipelineNames.groovy' MUST BE EMPTY!")
-                    }
                     if (params.BUILD_SUDOKU || params.BUILD_GAMES) {
-                        jobDsl targets: 'JobDSL/Sudoku/sudoku_folder_job.groovy', additionalClasspath: ['src/'].join('\n')
-                        jobDsl targets: 'JobDSL/Sudoku/sudoku_job.groovy', additionalClasspath: ['src/'].join('\n')
+                        jobDsl targets: 'JobDSL/Sudoku/sudoku_folder_job.groovy', additionalClasspath: 'src'
+                        jobDsl targets: 'JobDSL/Sudoku/sudoku_job.groovy', additionalClasspath: 'src'
                     }
                 }
             }
