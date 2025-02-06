@@ -19,7 +19,7 @@ jobs:
         shell: pwsh
 
       - name: Check Helm
-        run: C:\Users\atisw\scoop\shims\helm.exe version || exit 1
+        run: helm version || exit 1
         shell: pwsh
 
       - name: Start Minikube
@@ -39,7 +39,7 @@ jobs:
         shell: pwsh
 
       - name: Install Jenkins Helm Chart
-        run: C:\Users\atisw\scoop\shims\helm.exe install jenkins jenkins/jenkins -f ./helm/values/jenkins/values.yaml
+        run: helm install jenkins jenkins/jenkins -f ./helm/values/jenkins/values.yaml
         shell: pwsh
 
       # The following steps are commented out, uncomment them if you wish to use them
